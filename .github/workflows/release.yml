@@ -1,0 +1,60 @@
+name: "Release"
+on: 
+  push:
+    branches:
+      - master
+
+jobs:
+  bump:
+    name: "Bump"
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.tag_version.outputs.new_version }}
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      changelog: ${{ steps.tag_version.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: false
+
+  release:
+    name: "Release"
+    needs: bump
+    runs-on: ubuntu-latest
+    if: ${{ needs.bump.outputs.new_tag != null }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set env
+        run: |
+          echo "ASSET_DIR=package" >> $GITHUB_ENV
+          echo "ASSET_BASE_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${{ needs.bump.outputs.new_version }}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION_TAG=${{ needs.bump.outputs.new_tag }}" >> $GITHUB_ENV
+
+      # Sets new X-KDE-PluginInfo-Version in metadata.json
+      - name: Update plasmoid version
+        run: echo "`jq '.KPlugin.Version="'$RELEASE_VERSION'"' $ASSET_DIR/metadata.json`" > $ASSET_DIR/metadata.json
+      
+      # Creates plasmoid package
+      - name: Package
+        run: |
+          cd $ASSET_DIR
+          zip -r ../$ASSET_BASE_NAME-$RELEASE_VERSION.plasmoid *
+          cd ..
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.plasmoid"
+          tag: ${{ env.RELEASE_VERSION_TAG }}
+          body: ${{ needs.bump.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}

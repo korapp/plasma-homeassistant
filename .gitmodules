@@ -1,0 +1,3 @@
+[submodule "package/contents/lib/secrets"]
+	path = package/contents/lib/secrets
+	url = https://github.com/korapp/plasma-lib-secrets
