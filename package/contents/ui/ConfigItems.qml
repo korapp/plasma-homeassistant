@@ -18,7 +18,7 @@ Kirigami.FormLayout {
         id: ha
         baseUrl: plasmoid.configuration.url
         token: Secrets.token
-        onReadyChanged: {
+        onReady: {
             ha.getStates().then(s => entities = arrayToObject(s, 'entity_id'))
             ha.getServices().then(s => services = s)
         }
