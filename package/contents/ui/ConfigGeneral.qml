@@ -9,6 +9,8 @@ Kirigami.FormLayout {
     property alias cfg_url: url.text
     property alias cfg_flat: flat.checked
 
+    signal configurationChanged
+
     onCfg_urlChanged: Secrets.entryKey = cfg_url
 
     Item {
@@ -32,7 +34,7 @@ Kirigami.FormLayout {
     TextField {
         id: token
         text: Secrets.token
-        onEditingFinished: Secrets.token = token.text
+        onTextChanged: text !== Secrets.token && configurationChanged()
         Kirigami.FormData.label: i18n("Token")
     }
 
@@ -44,5 +46,9 @@ Kirigami.FormLayout {
     CheckBox {
         id: flat
         Kirigami.FormData.label: i18n("Flat entities")
+    }
+
+    function saveConfig() {
+        Secrets.token = token.text
     }
 }
