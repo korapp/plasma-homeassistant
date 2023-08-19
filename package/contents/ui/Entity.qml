@@ -27,6 +27,7 @@ PlasmaComponents3.Button {
         DynamicIcon {
             name: model.icon
             Layout.rowSpan: model.value ? 2 : 1
+            Layout.preferredWidth: PlasmaCore.Units.iconSizes.medium
         }
 
         PlasmaExtras.Heading {
@@ -35,6 +36,7 @@ PlasmaComponents3.Button {
             text: model.value
             elide: Text.ElideRight
             visible: !!text
+            wrapMode: Text.NoWrap
             font.weight: Font.Bold
             Layout.alignment: Qt.AlignBottom
             Layout.fillWidth: true

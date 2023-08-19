@@ -7,8 +7,7 @@ import org.kde.kirigami 2.4 as Kirigami
 import "../code/model.mjs" as Model
 import "."
 
-Kirigami.FormLayout {
-    anchors.fill: parent
+ColumnLayout {
     property string cfg_items
     property var items: JSON.parse(cfg_items)
     property var services: ({})
@@ -18,23 +17,36 @@ Kirigami.FormLayout {
         id: ha
         baseUrl: plasmoid.configuration.url
         token: Secrets.token
-        onReadyChanged: {
+        onReady: {
             ha.getStates().then(s => entities = arrayToObject(s, 'entity_id'))
             ha.getServices().then(s => services = s)
         }
     }
 
-    Loader {
-        id: loader
-        active: !!Object.keys(entities).length
-        sourceComponent: list
-        anchors.fill: parent
+    ScrollView {
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        contentHeight: itemList.implicitHeight
+        
+        ListView {
+            id: itemList
+            model: Object.keys(entities).length ? items : []
+            delegate: listItem
+            spacing: Kirigami.Units.mediumSpacing
+        }
+    }
+
+    Button {
+        icon.name: 'list-add'
+        text: i18n("Add")
+        onClicked: openDialog(new Model.ConfigEntity())
+        Layout.fillWidth: true
     }
 
     Component {
         id: listItem
         RowLayout {
-            width: parent.width
+            width: ListView.view.width
             DynamicIcon {
                 name: modelData.icon || entities[modelData.entity_id].attributes.icon || ''
                 Layout.preferredWidth: parent.height
@@ -67,25 +79,6 @@ Kirigami.FormLayout {
             ToolButton {
                 icon.name: 'delete'
                 onClicked: removeItem(index)
-            }
-        }
-    }
-
-    Component {
-        id: list
-        ScrollView {
-            ListView {
-                id: itemList
-                model: items
-                currentIndex: -1
-                delegate: listItem
-                spacing: Kirigami.Units.smallSpacing
-                footerPositioning: ListView.PullBackFooter
-                footer: Button {
-                    icon.name: 'list-add'
-                    text: i18n("Add")
-                    onClicked: openDialog(new Model.ConfigEntity())
-                }
             }
         }
     }

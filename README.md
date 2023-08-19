@@ -1,5 +1,9 @@
 # Home Assistant Plasmoid
 
+[![plasma](https://img.shields.io/static/v1?message=KDE%20Store&color=54a3d8&logo=kde&logoColor=FFFFFF&label=)][kdestore]
+[![downloads](https://img.shields.io/github/downloads/korapp/plasma-homeassistant/total)][releases]
+[![release](https://img.shields.io/github/v/release/korapp/plasma-homeassistant)][releases]
+
 Add Home Assistant to your plasma desktop.
 
 ![Plasmoid preview](preview.jpg)
@@ -27,7 +31,7 @@ Add Home Assistant to your plasma desktop.
 
 ### From file
 
-Download the latest version of plasmoid from [KDE Store](https://store.kde.org/p/2070431/)
+Download the latest version of plasmoid from [KDE Store][kdestore]
 
 #### A) Plasma UI
 
@@ -62,3 +66,7 @@ Say thank you with coffee ☕ if you'd like.
 
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/korapp/donate)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/korapp)
+[<img src="https://img.shields.io/static/v1?message=Revolut&color=FFFFFF&logo=Revolut&logoColor=000000&label=" height="30"/>](https://revolut.me/korapp)
+
+[kdestore]: https://store.kde.org/p/2070431/
+[releases]: https://github.com/korapp/plasma-homeassistant/releases

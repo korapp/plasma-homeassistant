@@ -7,24 +7,31 @@ BaseObject {
     property string apiUrl
     property string baseUrl
     property string token
-    readonly property alias ready: ws.ready
     property var subscribeState: ws.subscribeState
     property var unsubscribe: ws.unsubscribe
     property var callService: ws.callService
     property var getServices: ws.getServices
     property var getStates: ws.getStates
 
+    signal ready()
     signal stateChanged(var state)
     
     onBaseUrlChanged: apiUrl = baseUrl.replace('http', 'ws') + "/api/websocket"
     onTokenChanged: ws.active = apiUrl && token
 
     Timer {
-        interval: 10000
-        running: ws.status === WebSocket.Error || ws.status === WebSocket.Closed
+        id: pingPongTimer
+        interval: 30000
+        running: ws.active
+        repeat: true
+        property bool waiting
         onTriggered: {
-            ws.active = false
-            ws.active = true
+            if (waiting) {
+                ws.reconnect()
+            } else {
+                ws.ping()
+            }   
+            waiting = !waiting         
         }
     }
 
@@ -32,21 +39,26 @@ BaseObject {
         id: ws
         url: apiUrl
         property int messageCounter: 0
-        property bool ready: false
         property var promises: new Map()
 
         onTextMessageReceived: {
             const msg = JSON.parse(message)
             switch (msg.type) {
                 case 'auth_required': auth(token); break;
-                case 'auth_ok': ready = true; break;
+                case 'auth_ok': ready(); break;
                 case 'auth_invalid': console.error(msg.message); break;
                 case 'event': stateChanged(msg.event); break;
                 case 'result': handleResult(msg); break;
+                case 'pong': pingPongTimer.waiting = false
             }
         }
 
         onErrorStringChanged: errorString && console.error(errorString)
+
+        function reconnect() {
+            active = false
+            active = true
+        }
 
         function handleResult(msg) {
             const p = promises.get(msg.id)
@@ -96,6 +108,10 @@ BaseObject {
 
         function getServices() {
             return commandAsync({"type": "get_services"})
+        }
+
+        function ping() {
+            return command({"type": "ping"})
         }
 
         function commandAsync(message) {

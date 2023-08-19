@@ -30,7 +30,7 @@ Item {
         id: ha
         baseUrl: url
         token: Secrets.token
-        onReadyChanged: {
+        onReady: {
             subscribe()
             onItemsChanged.connect(subscribe)
         }
