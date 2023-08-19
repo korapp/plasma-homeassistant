@@ -8,6 +8,8 @@ jobs:
   bump:
     name: "Bump"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       new_version: ${{ steps.tag_version.outputs.new_version }}
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
@@ -27,6 +29,8 @@ jobs:
     name: "Release"
     needs: bump
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: ${{ needs.bump.outputs.new_tag != null }}
     steps:
       - name: Checkout
