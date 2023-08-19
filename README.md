@@ -62,3 +62,4 @@ Say thank you with coffee ☕ if you'd like.
 
 [![liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/korapp/donate)
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/korapp)
+[<img src="https://img.shields.io/static/v1?message=Revolut&color=FFFFFF&logo=Revolut&logoColor=000000&label=" height="30"/>](https://revolut.me/korapp)
