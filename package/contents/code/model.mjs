@@ -1,4 +1,3 @@
-const toggleableDomains = ['switch', 'light', 'cover'];
 const activeStates = ['on', 'open'];
 
 function getDisplayValue({ state, domain, attribute, attributes }) {
@@ -22,7 +21,6 @@ export function Entity({ entity_id = '', domain, name, icon, attribute = '', def
     this.default_action = default_action
     this.active = activeStates.includes(state)
     this.domain = entity_id.substring(0, entity_id.indexOf('.'))
-    this.toggleable = toggleableDomains.includes(this.domain)
     this.state = state
     this.value = getDisplayValue({ state, domain: this.domain, attribute, attributes })
 }

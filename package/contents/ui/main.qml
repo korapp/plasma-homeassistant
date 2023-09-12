@@ -34,6 +34,7 @@ Item {
             subscribe()
             onItemsChanged.connect(subscribe)
         }
+        onStateChanged: updateState(state)
     }
 
     function updateState(event) {
@@ -64,6 +65,5 @@ Item {
         const entities = items.map(i => i.entity_id)
         ha.getStates(entities).then(initState)
         subscription = ha.subscribeState(entities)
-        ha.onStateChanged.connect(updateState)
     }
 }

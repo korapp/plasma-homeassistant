@@ -10,11 +10,9 @@ import 'mdi'
 
 PlasmaComponents3.Button {
     enabled: !!model.default_action.service
-    checkable: model.toggleable
-    checked: model.active
+    down: model.active
     flat: plasmoid.configuration.flat
     onClicked: ha.callService(model.default_action)
-    onCheckedChanged: ha.callService(model.default_action)
 
     contentItem: GridLayout {
         id: grid
