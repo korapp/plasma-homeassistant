@@ -1,28 +1,27 @@
 const activeStates = ['on', 'open'];
 
-function getDisplayValue({ state, domain, attribute, attributes }) {
-    if (domain === 'button') return ''
+function getDisplayValue({ state, attribute, attributes, unit }) {
     if (attribute) {
         return attributes[attribute] || ''
     }
     if (state && state !== 'unknown') {
-        const unit = attributes.unit_of_measurement
-        return state + (unit ? (unit === '%' ? '' : ' ') + unit : '')
+        return state + (unit === '%' ? unit : ' ' + unit)
     }
     return ''
 }
 
-export function Entity({ entity_id = '', name, icon, attribute = '', default_action = {} } = {}, data = {}) {
-    const { state = '', attributes = {} } = data
+export function Entity({ entity_id = '', name, icon, attribute = '', unit, default_action = {} } = {}, data = {}) {
+    const { s: state = '', a: attributes = {} } = data
     this.entity_id = entity_id
     this.name = name || attributes.friendly_name || ''
     this.icon = icon || attributes.icon || ''
+    this.unit = unit || attributes.unit_of_measurement || ''
     this.attribute = attribute
     this.default_action = default_action
     this.active = activeStates.includes(state)
     this.domain = entity_id.substring(0, entity_id.indexOf('.'))
     this.state = state
-    this.value = getDisplayValue({ state, domain: this.domain, attribute, attributes })
+    this.value = getDisplayValue({ state, attribute, attributes, unit: this.unit })
 }
 
 export function ConfigEntity({ entity_id = '', name, icon, attribute, default_action, notify } = {}) {
