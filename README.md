@@ -23,8 +23,15 @@ Add Home Assistant to your plasma desktop.
 
 * Active KDE Wallet
 * Qt >= 5.14, KDE Frameworks >= 5.77, KDE Plasma >= 5.19 (e.g. Kubuntu 21.04 and newer)
-* **qml-module-qtwebsockets package installed (for Debian/Ubuntu based distro)**\
-Please remember to restart plasma or re-login after installing the dependency.
+* **Qt WebSocket package installed**
+  
+  Base | Required package
+  --|--
+  Debian, Ubuntu | qml-module-qtwebsockets
+  Arch, Fedora | qt5-websockets
+  openSUSE | libQt5WebSockets5
+
+  Please remember to restart plasma or re-login after installing the dependency.
 
 ## Installation
 

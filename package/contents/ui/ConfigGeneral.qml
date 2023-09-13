@@ -21,14 +21,12 @@ Kirigami.FormLayout {
     TextField {
         id: url
         onEditingFinished: Secrets.entryKey = url.text
+        placeholderText: "http://homeassistant.local:8123"
         Kirigami.FormData.label: i18n("Home Assistant URL")
     }
 
-    Kirigami.InlineMessage {
-        text: `<a href="${url.text}/profile">${i18n("Get token from your HA profile page")}</a>`
-        onLinkActivated: Qt.openUrlExternally(link)
-        visible: !token.text && url.text
-        Layout.fillWidth: true
+    Label {
+        text: i18n("Make sure the URL includes the protocol and port. For example:\nhttp://homeassistant.local:8123\nhttps://example.duckdns.org")
     }
 
     TextField {
@@ -36,6 +34,16 @@ Kirigami.FormLayout {
         text: Secrets.token
         onTextChanged: text !== Secrets.token && configurationChanged()
         Kirigami.FormData.label: i18n("Token")
+    }
+
+    Label {
+        text: i18n("Get token from your profile page")
+    }
+
+    Label {
+        text: `<a href="${url.text}/profile">${url.text}/profile</a>`
+        onLinkActivated: Qt.openUrlExternally(link)
+        visible: url.text
     }
 
     Item {
