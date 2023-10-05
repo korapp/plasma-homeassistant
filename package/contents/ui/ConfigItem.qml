@@ -72,4 +72,9 @@ Kirigami.FormLayout {
             name: iconName.text || iconName.placeholderText
         }
     }
+    CheckBox {
+        Kirigami.FormData.label: i18n("Notify about changes")
+        checked: !!item.notify
+        onCheckedChanged: item.notify = checked
+    }
 }
