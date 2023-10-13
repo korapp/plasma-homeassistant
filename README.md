@@ -12,6 +12,7 @@ Add Home Assistant to your plasma desktop.
 
 * Show entity state or attribute
 * Call services
+* Notify about entity changes
 
 ## Use
 

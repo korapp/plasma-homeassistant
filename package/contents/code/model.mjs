@@ -25,7 +25,7 @@ export function Entity({ entity_id = '', domain, name, icon, attribute = '', def
     this.value = getDisplayValue({ state, domain: this.domain, attribute, attributes })
 }
 
-export function ConfigEntity({ entity_id = '', name, icon, attribute, default_action } = {}) {
+export function ConfigEntity({ entity_id = '', name, icon, attribute, default_action, notify } = {}) {
     Object.defineProperties(this, {
         entity_id: {
             get: function() { return this._entity_id },
@@ -55,6 +55,7 @@ export function ConfigEntity({ entity_id = '', name, icon, attribute, default_ac
     this.icon = icon
     this.attribute = attribute
     this.default_action = default_action
+    this.notify = notify
 }
 
 ConfigEntity.prototype.toJSON = function() {
@@ -63,6 +64,7 @@ ConfigEntity.prototype.toJSON = function() {
         entity_id: this.entity_id,
         icon: this.icon,
         name: this.name,
-        default_action: this.default_action
+        default_action: this.default_action,
+        notify: this.notify
     }
 }

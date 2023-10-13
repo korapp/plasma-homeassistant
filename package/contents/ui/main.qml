@@ -37,11 +37,21 @@ Item {
         onStateChanged: updateState(state)
     }
 
+    Notifications {
+        id: notifications
+    }
+
     function updateState(event) {
         if (!event || !event.variables) return
         const trigger = event.variables.trigger
         const itemIdx = items.findIndex(i => i.entity_id === trigger.entity_id)
-        itemModel.set(itemIdx, new Model.Entity(items[itemIdx], trigger.to_state))
+        const configItem = items[itemIdx]
+        const newItem = new Model.Entity(configItem, trigger.to_state)
+        const oldValue = itemModel.get(itemIdx).value
+        itemModel.set(itemIdx, newItem)
+        if (configItem.notify && oldValue !== newItem.value) {
+            notifications.createNotification(newItem.name + " " + newItem.value)
+        }
     }
 
     function initState(data) {
