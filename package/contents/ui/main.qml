@@ -76,4 +76,12 @@ Item {
         ha.getStates(entities).then(initState)
         subscription = ha.subscribeState(entities)
     }
+
+    Component.onCompleted: {
+        plasmoid.setAction("open_in_browser", i18n("Open in browser"), plasmoid.icon)
+    }
+
+    function action_open_in_browser() {
+        Qt.openUrlExternally(url)
+    }
 }
