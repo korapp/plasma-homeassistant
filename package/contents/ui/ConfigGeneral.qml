@@ -69,7 +69,7 @@ Kirigami.FormLayout {
 
     Label {
         text: `<a href="${url.editText}/profile">${url.editText}/profile</a>`
-        onLinkActivated: Qt.openUrlExternally(link)
+        onLinkActivated: link => Qt.openUrlExternally(link)
         visible: url.editText
     }
 

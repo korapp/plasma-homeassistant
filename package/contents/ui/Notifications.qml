@@ -1,24 +1,22 @@
 import QtQuick 2.0
 
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.notification 1.0
 
-PlasmaCore.DataSource {
-    id: notificationSource
-    engine: "notifications"
-    connectedSources: "org.freedesktop.Notifications"
+import "components"
 
-    function createNotification(summary, { appName = plasmoid.title, appIcon = plasmoid.icon } = {}, actions) {        
-        const service = notificationSource.serviceForSource("notification");
-        const operation = service.operationDescription("createNotification");
-
-        operation.appName = appName
-        operation.appIcon = appIcon
-        operation.summary = summary
-        operation.expireTimeout = 5000
-        if (actions) {
-            operation.actions = actions
+BaseObject {
+    Component {
+        id: notificationComponent
+        Notification {
+            componentName: "plasma_workspace"
+            eventId: "notification"
+            title: plasmoid.title
+            iconName: plasmoid.icon
+            autoDelete: true
         }
+    }
 
-        service.startOperationCall(operation);
+    function createNotification(text) {        
+        notificationComponent.createObject(root, { text })?.sendEvent()
     }
 }

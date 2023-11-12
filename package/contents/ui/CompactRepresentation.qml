@@ -3,7 +3,7 @@ import QtQuick 2.0
 import "./mdi"
 
 MouseArea {
-    onClicked: plasmoid.expanded = !plasmoid.expanded
+    onClicked: root.expanded = !root.expanded
 
     MdiIcon {
         name: "home-assistant"

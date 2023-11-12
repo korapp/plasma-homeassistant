@@ -1,10 +1,9 @@
 pragma Singleton
 
 import QtQuick 2.0
+import org.kde.ksvg 1.0 as KSvg
 
-import org.kde.plasma.core 2.0 as PlasmaCore
-
-PlasmaCore.Svg {
+KSvg.Svg {
     imagePath: Qt.resolvedUrl("mdi.svgz")
     multipleImages: true
 

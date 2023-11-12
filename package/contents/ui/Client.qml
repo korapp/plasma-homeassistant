@@ -18,8 +18,8 @@ BaseObject {
     
     Connections {
         target: ws
-        onError: errorString = msg
-        onEstablished: errorString = ""
+        function onError(msg) { errorString = msg }
+        function onEstablished() { errorString = "" }
     }
 
     readonly property QtObject ready: QtObject {
@@ -65,7 +65,7 @@ BaseObject {
         onOpenChanged: ready = false
         onReadyChanged: ready && established()
 
-        onTextMessageReceived: {
+        onTextMessageReceived: message => {
             pingPongTimer.reset()
             const msg = JSON.parse(message)
             switch (msg.type) {
@@ -77,7 +77,7 @@ BaseObject {
             }
         }
 
-        onErrorStringChanged: errorString && error(errorString)
+        onErrorStringChanged: () => errorString && error(errorString)
 
         function reconnect() {
             active = false

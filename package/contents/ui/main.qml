@@ -2,19 +2,20 @@ import QtQuick 2.0
 
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.kirigami 2.4 as Kirigami
 
 import "."
 import "../code/model.mjs" as Model
 
-Item {
+PlasmoidItem {
     id: root
-    Plasmoid.compactRepresentation: CompactRepresentation {}
-    Plasmoid.fullRepresentation: FullRepresentation {}
+    compactRepresentation: CompactRepresentation {}
+    fullRepresentation: FullRepresentation {}
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
-    Plasmoid.configurationRequired: !ClientFactory.error && (!url || !ha || !ha.token || !items.length)
+    Plasmoid.configurationRequired: !ClientFactory.error && !(url && ha?.token && items.length)
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
-    Plasmoid.switchHeight: PlasmaCore.Units.iconSizes.enormous / 2
-    Plasmoid.switchWidth: PlasmaCore.Units.iconSizes.enormous
+    switchHeight: Kirigami.Units.iconSizes.enormous / 2
+    switchWidth: Kirigami.Units.iconSizes.enormous
     
     readonly property string url: plasmoid.configuration.url
     readonly property string cfgItems: plasmoid.configuration.items
@@ -26,6 +27,14 @@ Item {
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)
     onUrlChanged: url && initClient(url)
+
+    Plasmoid.contextualActions: [
+        PlasmaCore.Action {
+            text: i18n("Open in browser")
+            icon.name: plasmoid.icon
+            onTriggered: Qt.openUrlExternally(url)
+        }
+    ]
 
     Notifications {
         id: notifications
@@ -72,13 +81,5 @@ Item {
 
     function unsubscribe() {
         cancelSubscription = typeof cancelSubscription === 'function' && cancelSubscription()
-    }
-
-    Component.onCompleted: {
-        plasmoid.setAction("open_in_browser", i18n("Open in browser"), plasmoid.icon)
-    }
-
-    function action_open_in_browser() {
-        Qt.openUrlExternally(url)
     }
 }

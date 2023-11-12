@@ -2,14 +2,16 @@ import QtQuick 2.0
 import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
 
-import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+
+import org.kde.kirigami 2.4 as Kirigami
 
 import 'mdi'
 
 PlasmaComponents3.Button {
-    enabled: !!model.default_action.service
+    enabled: !!model.default_action?.service
+    hoverEnabled: enabled
     down: model.active
     flat: plasmoid.configuration.flat
     onClicked: ha.callService(model.default_action)
@@ -19,13 +21,13 @@ PlasmaComponents3.Button {
         columns: 2
         rows: model.value ? 2 : 1
         clip: true
-        columnSpacing: PlasmaCore.Units.smallSpacing
+        columnSpacing: Kirigami.Units.smallSpacing
         rowSpacing: 0
 
         DynamicIcon {
             name: model.icon
             Layout.rowSpan: model.value ? 2 : 1
-            Layout.preferredWidth: PlasmaCore.Units.iconSizes.medium
+            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
         }
 
         PlasmaExtras.Heading {
@@ -51,7 +53,7 @@ PlasmaComponents3.Button {
 
     PlasmaComponents3.ToolTip {
         text: parent.enabled ? format(model.default_action.service) + name : ''
-        visible: hovered
+        visible: hovered && text
     }
 
     function format(underscoredText) {

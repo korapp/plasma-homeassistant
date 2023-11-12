@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.0
 
-import org.kde.kirigami 2.5 as Kirigami
+import org.kde.kirigami 2.19 as Kirigami
 
 import "../code/model.mjs" as Model
 import "."
@@ -32,7 +32,7 @@ ColumnLayout {
 
     Kirigami.InlineMessage {
         Layout.fillWidth: true
-        text: ha && ha.errorString
+        text: ha?.errorString
         visible: !!text
         type: Kirigami.MessageType.Error
     }
@@ -45,10 +45,7 @@ ColumnLayout {
         ListView {
             id: itemList
             model: Object.keys(entities).length ? items : []
-            delegate: Kirigami.DelegateRecycler {
-                width: itemList.width
-                sourceComponent: listItemComponent
-            }
+            delegate: EntityListItem {}
             moveDisplaced: Transition {
                 NumberAnimation { properties: "y"; duration: Kirigami.Units.longDuration }
             }
@@ -68,65 +65,59 @@ ColumnLayout {
         Layout.fillWidth: true
     }
 
-    Component {
-        id: listItemComponent
-        Kirigami.SwipeListItem {
+    component EntityListItem: Item { // Wrapper for ListItemDragHandle
+        width: ListView.view.width
+        implicitHeight: listItem.height
+        ItemDelegate {
             id: listItem
+            down: false
+            width: parent.width
             readonly property var entity: entities[model.entity_id]
-            RowLayout {
+            contentItem: RowLayout {
                 Kirigami.ListItemDragHandle {
                     listItem: listItem
                     listView: itemList
-                    onMoveRequested: items.move(oldIndex, newIndex, 1)
+                    onMoveRequested: (oldIndex, newIndex) => items.move(oldIndex, newIndex, 1)
                     onDropped: save()
                 }
                 DynamicIcon {
-                    name: model.icon || (entity && entity.attributes.icon) || ''
+                    name: model.icon || listItem.entity?.attributes.icon || ''
                     Layout.preferredWidth: parent.height
                     Layout.preferredHeight: parent.height
                 }
-                Column {
-                    Label {
-                        text: model.name || (entity && entity.attributes.friendly_name) || 'Unknown'
-                    }
-                    Label {
-                        text: model.entity_id
-                        font: Kirigami.Theme.smallFont
-                        opacity: 0.6
-                    }
+                Kirigami.TitleSubtitle {
+                    title: model.name || listItem.entity?.attributes.friendly_name || 'Unknown'
+                    subtitle: model.entity_id
                     Layout.fillWidth: true
                 }
-            }
-            actions: [
-                Kirigami.Action {
-                    iconName: 'edit-entry'
-                    onTriggered: openDialog(new Model.ConfigEntity(model), index)
-                },
-                Kirigami.Action {
-                    icon.name: 'delete'
-                    onTriggered: removeItem(index)
+                ToolButton {
+                    icon.name: 'edit-entry'
+                    onClicked: openDialog(new Model.ConfigEntity(model), index)
                 }
-            ]
+                ToolButton {
+                    icon.name: 'delete'
+                    onClicked: removeItem(index)
+                }
+            }
         }
     }
 
     Component {
         id: dialogComponent
-        Kirigami.OverlaySheet {
+        Kirigami.Dialog {
             id: dialog
             property int index
             property var item
-            signal accepted(int index, var item)
-            readonly property bool acceptable: !!contentItem.item.entity_id
+            signal itemAccepted(int index, var item)
+            readonly property bool acceptable: !!itemForm.item?.entity_id
+            padding: Kirigami.Units.largeSpacing
+            standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+            onRejected: close()
+            onAccepted: itemAccepted(index, item) || close()
+            Component.onCompleted: standardButton(Kirigami.Dialog.Ok).enabled = Qt.binding(() => acceptable)
 
-            footer: DialogButtonBox {
-                standardButtons: DialogButtonBox.Ok | DialogButtonBox.Cancel
-                onRejected: dialog.close()
-                onAccepted: dialog.accepted(index, item) || dialog.close()
-                Component.onCompleted: standardButton(DialogButtonBox.Ok).enabled = Qt.binding(() => acceptable)
-            }
-
-            contentItem: ConfigItem {
+            ConfigItem {
+                id: itemForm
                 item: dialog.item
             }
         }
@@ -139,7 +130,7 @@ ColumnLayout {
             title: data.name || data.entity_id || i18n('New')
         })
         dialog.open()
-        dialog.onAccepted.connect((index, item) => {
+        dialog.onItemAccepted.connect((index, item) => {
             if (~index) {
                 return updateItem(item.toJSON(), index)
             }
