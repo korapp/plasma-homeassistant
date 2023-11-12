@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.0
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.0
 
@@ -12,15 +12,16 @@ ColumnLayout {
     property var items: JSON.parse(cfg_items)
     property var services: ({})
     property var entities: ({})
+    property Client ha
 
-    WsClient {
-        id: ha
-        baseUrl: plasmoid.configuration.url
-        token: Secrets.token
-        onReady: {
-            ha.getStates().then(s => entities = arrayToObject(s, 'entity_id'))
-            ha.getServices().then(s => services = s)
-        }
+    Component.onCompleted: {
+        ha = ClientFactory.getClient(this, plasmoid.configuration.url)
+        ha.ready.connect(fetchData)
+    }
+
+    function fetchData() {
+        ha.getStates().then(s => entities = arrayToObject(s, 'entity_id'))
+        ha.getServices().then(s => services = s)
     }
 
     ScrollView {

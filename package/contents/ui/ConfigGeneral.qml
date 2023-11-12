@@ -11,7 +11,20 @@ Kirigami.FormLayout {
 
     signal configurationChanged
 
-    onCfg_urlChanged: Secrets.entryKey = cfg_url
+    Secrets {
+        id: secrets
+        property string token
+        onReady: restore(cfg_url)
+        
+        function restore(entryKey) {
+            if (!entryKey) {
+                return this.token = ""
+            }
+            get(entryKey)
+                .then(t => this.token = t)
+                .catch(() => this.token = "")
+        }
+    }
 
     Item {
         Kirigami.FormData.isSection: true
@@ -20,7 +33,7 @@ Kirigami.FormLayout {
 
     TextField {
         id: url
-        onEditingFinished: Secrets.entryKey = url.text
+        onEditingFinished: secrets.restore(text)
         placeholderText: "http://homeassistant.local:8123"
         Kirigami.FormData.label: i18n("Home Assistant URL")
     }
@@ -31,8 +44,8 @@ Kirigami.FormLayout {
 
     TextField {
         id: token
-        text: Secrets.token
-        onTextChanged: text !== Secrets.token && configurationChanged()
+        text: secrets.token
+        onTextChanged: text !== secrets.token && configurationChanged()
         Kirigami.FormData.label: i18n("Token")
     }
 
@@ -57,6 +70,6 @@ Kirigami.FormLayout {
     }
 
     function saveConfig() {
-        Secrets.token = token.text
+        secrets.set(url.text, token.text)
     }
 }

@@ -1,1 +1,1 @@
-singleton Secrets 1.0 Secrets.qml
+singleton ClientFactory 1.0 ClientFactory.qml
