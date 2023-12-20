@@ -4,18 +4,23 @@ import QtWebSockets 1.0
 import "components"
 
 BaseObject {
-    property string apiUrl
     property string baseUrl
     property string token
     property var subscribeState: ws.subscribeState
     property var callService: ws.callService
     property var getServices: ws.getServices
     property var getStates: ws.getStates
+    property string errorString: ""
+    readonly property bool configured: ws.url && token
     
-    onBaseUrlChanged: apiUrl = baseUrl.replace('http', 'ws') + "/api/websocket"
-    onTokenChanged: ws.active = apiUrl && token
-
-    signal release()
+    onBaseUrlChanged: ws.url = baseUrl.replace('http', 'ws') + "/api/websocket"
+    onConfiguredChanged: ws.active = configured
+    
+    Connections {
+        target: ws
+        onError: errorString = msg
+        onEstablished: errorString = ""
+    }
 
     readonly property QtObject ready: QtObject {
         function connect (fn) {
@@ -30,16 +35,20 @@ BaseObject {
     Timer {
         id: pingPongTimer
         interval: 30000
-        running: ws.active
+        running: ws.status
         repeat: true
         property bool waiting
         onTriggered: {
-            if (waiting) {
+            if (waiting || !ws.open) {
                 ws.reconnect()
             } else {
                 ws.ping()
             }   
             waiting = !waiting         
+        }
+        function reset() {
+            waiting = false
+            restart()
         }
     }
 
@@ -50,24 +59,26 @@ BaseObject {
         property int messageCounter: 0
         property var subscriptions: new Map()
         property var promises: new Map()
+        readonly property bool open: status === WebSocket.Open
         signal established
+        signal error(string msg)
 
-        onStatusChanged: ready = false
+        onOpenChanged: ready = false
         onReadyChanged: ready && established()
 
         onTextMessageReceived: {
+            pingPongTimer.reset()
             const msg = JSON.parse(message)
             switch (msg.type) {
                 case 'auth_required': auth(token); break;
                 case 'auth_ok': ready = true; break;
-                case 'auth_invalid': console.error(msg.message); break;
+                case 'auth_invalid': error(msg.message); break;
                 case 'event': notifyStateUpdate(msg); break;
                 case 'result': handleResult(msg); break;
-                case 'pong': pingPongTimer.waiting = false
             }
         }
 
-        onErrorStringChanged: errorString && console.error(errorString)
+        onErrorStringChanged: errorString && error(errorString)
 
         function reconnect() {
             active = false

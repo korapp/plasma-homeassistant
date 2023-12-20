@@ -12,6 +12,7 @@ ColumnLayout {
     property var items: JSON.parse(cfg_items)
     property var services: ({})
     property var entities: ({})
+    property bool busy: true
     property Client ha
 
     Component.onCompleted: {
@@ -20,8 +21,19 @@ ColumnLayout {
     }
 
     function fetchData() {
-        ha.getStates().then(s => entities = arrayToObject(s, 'entity_id'))
-        ha.getServices().then(s => services = s)
+        return Promise.all([ha.getStates(), ha.getServices()])
+            .then(([e, s]) => {
+                entities = arrayToObject(e, 'entity_id')
+                services = s
+                busy = false
+            }).catch(() => busy = false)
+    }
+
+    Kirigami.InlineMessage {
+        Layout.fillWidth: true
+        text: ha && ha.errorString
+        visible: !!text
+        type: Kirigami.MessageType.Error
     }
 
     ScrollView {
@@ -34,12 +46,18 @@ ColumnLayout {
             model: Object.keys(entities).length ? items : []
             delegate: listItem
             spacing: Kirigami.Units.mediumSpacing
+
+            BusyIndicator {
+                anchors.centerIn: parent
+                visible: busy
+            }
         }
     }
 
     Button {
         icon.name: 'list-add'
         text: i18n("Add")
+        enabled: !busy
         onClicked: openDialog(new Model.ConfigEntity())
         Layout.fillWidth: true
     }
