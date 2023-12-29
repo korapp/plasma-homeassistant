@@ -3,10 +3,9 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
 
 import org.kde.kirigami 2.4 as Kirigami
-import "."
 
 Kirigami.FormLayout {
-    property alias cfg_url: url.text
+    property string cfg_url
     property alias cfg_flat: flat.checked
 
     signal configurationChanged
@@ -14,7 +13,10 @@ Kirigami.FormLayout {
     Secrets {
         id: secrets
         property string token
-        onReady: restore(cfg_url)
+        onReady: {
+            restore(cfg_url)
+            list().then(urls => (url.model = urls))
+        }
         
         function restore(entryKey) {
             if (!entryKey) {
@@ -31,11 +33,19 @@ Kirigami.FormLayout {
         Kirigami.FormData.label: i18n("API")
     }
 
-    TextField {
+    ComboBox {
         id: url
-        onEditingFinished: secrets.restore(text)
-        placeholderText: "http://homeassistant.local:8123"
+        editable: true
+        onModelChanged: currentIndex = indexOfValue(cfg_url)
+        onFocusChanged: !focus && onValueChanged(editText)
+        onActivated: onValueChanged(editText)
         Kirigami.FormData.label: i18n("Home Assistant URL")
+        Layout.fillWidth: true
+
+        function onValueChanged(value) {
+            cfg_url = value
+            secrets.restore(editText)
+        }
     }
 
     Label {
@@ -54,9 +64,9 @@ Kirigami.FormLayout {
     }
 
     Label {
-        text: `<a href="${url.text}/profile">${url.text}/profile</a>`
+        text: `<a href="${url.editText}/profile">${url.editText}/profile</a>`
         onLinkActivated: Qt.openUrlExternally(link)
-        visible: url.text
+        visible: url.editText
     }
 
     Item {
@@ -70,6 +80,6 @@ Kirigami.FormLayout {
     }
 
     function saveConfig() {
-        secrets.set(url.text, token.text)
+        secrets.set(url.editText, token.text)
     }
 }
