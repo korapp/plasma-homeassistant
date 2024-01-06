@@ -11,8 +11,8 @@ Item {
     Plasmoid.compactRepresentation: CompactRepresentation {}
     Plasmoid.fullRepresentation: FullRepresentation {}
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
-    Plasmoid.configurationRequired: !url || !ha || !ha.token || !items.length
-    Plasmoid.busy: !plasmoid.configurationRequired && !initialized
+    Plasmoid.configurationRequired: !ClientFactory.error && (!url || !ha || !ha.token || !items.length)
+    Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
     Plasmoid.switchHeight: PlasmaCore.Units.iconSizes.enormous / 2
     Plasmoid.switchWidth: PlasmaCore.Units.iconSizes.enormous
     
@@ -21,7 +21,7 @@ Item {
     property ListModel itemModel: ListModel {}
     property var items: []
     property bool initialized: false
-    property Client ha
+    property QtObject ha
     property var cancelSubscription
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)

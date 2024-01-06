@@ -54,7 +54,6 @@ BaseObject {
 
     WebSocket {
         id: ws
-        url: apiUrl
         property bool ready: false
         property int messageCounter: 0
         property var subscriptions: new Map()

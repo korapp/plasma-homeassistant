@@ -6,6 +6,9 @@ import "components"
 
 BaseObject {
     readonly property var _instances: new Map()
+    readonly property Component clientComponent: Qt.createComponent("Client.qml")
+    readonly property bool error: clientComponent.status === Component.Error
+    readonly property var errorString: clientComponent.errorString
 
     Secrets {
         id: secrets
@@ -14,25 +17,24 @@ BaseObject {
             return init.then(() => get(url))
         }
     }
-
-    Component {
-        id: clientComponent
-        Client {
-            onBaseUrlChanged: secrets.getToken(baseUrl).then(t => token = t)
-        }
-    }
     
     function getClient(consumer, baseUrl) {
         if (!(consumer instanceof QtObject) || !baseUrl) return
         let instance = _findInstance(baseUrl)
         if (!instance) {
-            instance = clientComponent.createObject(null, { baseUrl })
+            instance = _createClient(baseUrl)
         }
         if (!_instances.has(consumer)) {
             consumer.Component.destruction.connect(() => _instances.delete(consumer))
         }
         _instances.set(consumer, instance)
         return instance
+    }
+
+    function _createClient(baseUrl) {
+        const client = clientComponent.createObject(null, { baseUrl })
+        secrets.getToken(baseUrl).then(t => client.token = t)
+        return client
     }
 
     function _findInstance(url) {

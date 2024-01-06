@@ -59,4 +59,20 @@ PlasmaExtras.Representation {
             right: parent.right
         }
     }
+
+    Loader {
+        width: parent.width
+        anchors.centerIn: parent
+        active: ClientFactory.error
+        sourceComponent: PlasmaExtras.PlaceholderMessage {
+            text: i18n("Failed to create WebSocket client")
+            explanation: ClientFactory.errorString().split(/\:\d+\s/)[1]
+            iconName: "error"
+            helpfulAction: Action {
+                icon.name: "link"
+                text: i18n("Show requirements")
+                onTriggered: Qt.openUrlExternally(`${plasmoid.metaData.website}/tree/v${plasmoid.metaData.version}#requirements`)
+            }
+        }
+    }
 }
