@@ -4,56 +4,80 @@ import QtWebSockets 1.0
 import "components"
 
 BaseObject {
-    property string apiUrl
     property string baseUrl
     property string token
     property var subscribeState: ws.subscribeState
-    property var unsubscribe: ws.unsubscribe
     property var callService: ws.callService
     property var getServices: ws.getServices
     property var getStates: ws.getStates
-
-    signal ready()
-    signal stateChanged(var state)
+    property string errorString: ""
+    readonly property bool configured: ws.url && token
     
-    onBaseUrlChanged: apiUrl = baseUrl.replace('http', 'ws') + "/api/websocket"
-    onTokenChanged: ws.active = apiUrl && token
+    onBaseUrlChanged: ws.url = baseUrl.replace('http', 'ws') + "/api/websocket"
+    onConfiguredChanged: ws.active = configured
+    
+    Connections {
+        target: ws
+        onError: errorString = msg
+        onEstablished: errorString = ""
+    }
+
+    readonly property QtObject ready: QtObject {
+        function connect (fn) {
+            if (ws.ready) fn()
+            ws.established.connect(fn)
+        }
+        function disconnect (fn) {
+            ws.established.disconnect(fn)
+        }
+    }
 
     Timer {
         id: pingPongTimer
         interval: 30000
-        running: ws.active
+        running: ws.status
         repeat: true
         property bool waiting
         onTriggered: {
-            if (waiting) {
+            if (waiting || !ws.open) {
                 ws.reconnect()
             } else {
                 ws.ping()
             }   
             waiting = !waiting         
         }
+        function reset() {
+            waiting = false
+            restart()
+        }
     }
 
     WebSocket {
         id: ws
-        url: apiUrl
+        property bool ready: false
         property int messageCounter: 0
+        property var subscriptions: new Map()
         property var promises: new Map()
+        readonly property bool open: status === WebSocket.Open
+        signal established
+        signal error(string msg)
+
+        onOpenChanged: ready = false
+        onReadyChanged: ready && established()
 
         onTextMessageReceived: {
+            pingPongTimer.reset()
             const msg = JSON.parse(message)
             switch (msg.type) {
                 case 'auth_required': auth(token); break;
-                case 'auth_ok': ready(); break;
-                case 'auth_invalid': console.error(msg.message); break;
-                case 'event': stateChanged(msg.event); break;
+                case 'auth_ok': ready = true; break;
+                case 'auth_invalid': error(msg.message); break;
+                case 'event': notifyStateUpdate(msg); break;
                 case 'result': handleResult(msg); break;
-                case 'pong': pingPongTimer.waiting = false
             }
         }
 
-        onErrorStringChanged: errorString && console.error(errorString)
+        onErrorStringChanged: errorString && error(errorString)
 
         function reconnect() {
             active = false
@@ -75,12 +99,19 @@ BaseObject {
             send({"type": "auth", "access_token": token})
         }
 
-        function subscribeState(entities) {
-            if (!entities) return
-            return subscribe({
+        function notifyStateUpdate(msg) {
+            const callback = subscriptions.get(msg.id)
+            return callback && callback(msg.event.variables.trigger.to_state)
+        }
+
+        function subscribeState(entities, callback) {
+            if (!callback) return
+            const subscription = subscribe({
                 "platform": "state",
                 "entity_id": entities
             })
+            subscriptions.set(subscription, callback)
+            return () => unsubscribe(subscription)
         }
 
         function subscribe(trigger) {
@@ -88,7 +119,9 @@ BaseObject {
         }
 
         function unsubscribe(subscription) {
-            return command({"type": "unsubscribe_events", subscription})
+            if(!subscriptions.has(subscription)) return
+            return commandAsync({"type": "unsubscribe_events", subscription})
+                .then(() => subscriptions.delete(subscription))
         }
 
         function callService({ domain, service, data, target } = {}) {
@@ -127,5 +160,11 @@ BaseObject {
             sendTextMessage(JSON.stringify(message))
             return messageCounter++
         }
+
+        function unsubscribeAll() {
+            Array.from(subscriptions.keys()).forEach(unsubscribe)
+        }
+
+        Component.onDestruction: unsubscribeAll()
     }
 }

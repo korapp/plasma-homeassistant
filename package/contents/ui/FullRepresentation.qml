@@ -6,6 +6,8 @@ import org.kde.plasma.core 2.1 as PlasmaCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 
+import "components"
+
 PlasmaExtras.Representation {
     readonly property var appletInterface: plasmoid.self
 
@@ -46,5 +48,31 @@ PlasmaExtras.Representation {
         running: true
         visible: plasmoid.busy
         anchors.centerIn: parent
+    }
+
+    StatusIndicator {
+        icon: "data-error"
+        size: PlasmaCore.Units.iconSizes.small
+        message: ha && ha.errorString
+        anchors {
+            bottom: parent.bottom
+            right: parent.right
+        }
+    }
+
+    Loader {
+        width: parent.width
+        anchors.centerIn: parent
+        active: ClientFactory.error
+        sourceComponent: PlasmaExtras.PlaceholderMessage {
+            text: i18n("Failed to create WebSocket client")
+            explanation: ClientFactory.errorString().split(/\:\d+\s/)[1]
+            iconName: "error"
+            helpfulAction: Action {
+                icon.name: "link"
+                text: i18n("Show requirements")
+                onTriggered: Qt.openUrlExternally(`${plasmoid.metaData.website}/tree/v${plasmoid.metaData.version}#requirements`)
+            }
+        }
     }
 }
