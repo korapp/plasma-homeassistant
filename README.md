@@ -32,8 +32,9 @@ Add Home Assistant to your plasma desktop.
   Arch | qt5-websockets
   Fedora | qt5-qtwebsockets-devel
   openSUSE | libQt5WebSockets5
+  NixOS | libsForQt5.qt5.qtwebsockets
 
-  Please remember to restart plasma or re-login after installing the dependency.
+  **Please remember to restart plasma or re-login after installing the dependency.**
 
 ## Installation
 
