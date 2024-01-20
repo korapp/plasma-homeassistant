@@ -5,50 +5,46 @@ import org.kde.kirigami 2.4 as Kirigami
 
 Kirigami.FormLayout {
     property var item
-    property var source: ({})
+    readonly property var source: item.entity_id && entities[item.entity_id] || {}
 
     ComboBox {
-        id: itemStateSelector
         model: Object.keys(entities).sort()
         editable: true
-        currentIndex: indexOfValue(item.entity_id)
+        currentIndex: -1
         Kirigami.FormData.label: i18n("Entity")
-        Component.onCompleted: currentIndex = indexOfValue(item.entity_id)
-        
+        Component.onCompleted: {
+            editText = item.entity_id
+            currentIndex = model.indexOf(editText)
+        }
         onCurrentTextChanged: {
-            source = entities[currentText]
-            item.entity_id = source.entity_id
-            attributeSelector.model = Object.keys(source.attributes) || []
-            const availableServices = services[item.domain]
-            if (availableServices) {
-                serviceSelector.model = Object.keys(availableServices) || []
-            }
+            item.entity_id = currentText
+            item = item
         }
     }
 
     ComboBox {
-        id: attributeSelector
-        onActivated: item.attribute = currentValue
-        onModelChanged: currentIndex = indexOfValue(item.attribute)
+        displayText: currentText || item.attribute
+        model: source.attributes ? Object.keys(source.attributes) : []
+        onActivated: item.attribute = model[index]
+        onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
         enabled: Kirigami.FormData.checked
-        onEnabledChanged: !enabled && (delete item.attribute)
+        onEnabledChanged: activated(enabled ? currentIndex : -1)
         Kirigami.FormData.checked: !!item.attribute
         Kirigami.FormData.label: i18n("Display attribute")
         Kirigami.FormData.checkable: true
     }
 
     ComboBox {
-        readonly property bool hasDefaultAction: !!item.default_action
-        id: serviceSelector
         visible: !!count
-        onActivated: item.default_action = { service: currentValue }
-        onModelChanged: {
-            currentIndex = hasDefaultAction ? indexOfValue(item.default_action.service) : -1
-        }
+        model: item.domain && services[item.domain] ? Object.keys(services[item.domain]) : []
+        onActivated: item.default_action = { service: model[index] }
         enabled: Kirigami.FormData.checked
-        onEnabledChanged: !enabled && hasDefaultAction && (delete item.default_action.service)
+        onModelChanged: {
+            currentIndex = item.default_action && model ? model.indexOf(item.default_action.service) : -1
+            Kirigami.FormData.checked = ~currentIndex
+        }
+        onEnabledChanged: activated(enabled ? currentIndex : -1)
         Kirigami.FormData.label: i18n("Action")
-        Kirigami.FormData.checked: !!hasDefaultAction
         Kirigami.FormData.checkable: true
     }
 
@@ -72,6 +68,7 @@ Kirigami.FormLayout {
             name: iconName.text || iconName.placeholderText
         }
     }
+
     CheckBox {
         Kirigami.FormData.label: i18n("Notify about changes")
         checked: !!item.notify
