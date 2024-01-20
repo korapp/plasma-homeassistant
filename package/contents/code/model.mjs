@@ -32,6 +32,12 @@ export function ConfigEntity({ entity_id = '', name, icon, attribute, default_ac
             set: function(id) {
                 this._entity_id = id
                 this._domain = id.substring(0, id.indexOf('.'))
+                if (!this._default_action) return
+                if (this._domain === this._default_action.domain) {
+                    this._default_action.target.entity_id = id
+                } else {
+                    delete this._default_action
+                }
             }
         },
         domain: {
