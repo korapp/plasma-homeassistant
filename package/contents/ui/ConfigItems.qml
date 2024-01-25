@@ -2,13 +2,15 @@ import QtQuick 2.0
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.0
 
-import org.kde.kirigami 2.5 as Kirigami
+import org.kde.kirigami 2.7 as Kirigami
 
 import "../code/model.mjs" as Model
+import "components"
 import "."
 
 ColumnLayout {
     property string cfg_items
+    property alias cfg_autoBackupFile: autoBackupFileField.text
     property ListModel items: ListModel { dynamicRoles: true }
     property var services: ({})
     property var entities: ({})
@@ -16,9 +18,13 @@ ColumnLayout {
     property Client ha
 
     Component.onCompleted: {
-        items.append(JSON.parse(cfg_items))
+        setItems(cfg_items)
         ha = ClientFactory.getClient(this, plasmoid.configuration.url)
         ha.ready.connect(fetchData)
+    }
+
+    function setItems(data) {
+        items.append(JSON.parse(data))
     }
 
     function fetchData() {
@@ -61,12 +67,68 @@ ColumnLayout {
         }
     }
 
-    Button {
-        icon.name: 'list-add'
-        text: i18n("Add")
+    RowLayout {
         enabled: !busy
-        onClicked: openDialog(new Model.ConfigEntity())
-        Layout.fillWidth: true
+        Button {
+            icon.name: 'list-add'
+            text: i18n("Add")
+            onClicked: openDialog(new Model.ConfigEntity())
+            Layout.fillWidth: true
+        }
+        Button {
+            icon.name: 'application-menu'
+            down: backupMenu.visible
+            onClicked: backupMenu.visible = !backupMenu.visible
+        }
+    }
+        
+    ColumnLayout {
+        id: backupMenu
+        visible: false
+
+        RowLayout {
+            Button {
+                icon.name: 'document-import'
+                text: i18n("Import")
+                onClicked: file.open().then(data => {
+                    setItems(data)
+                    save()
+                })
+                Layout.fillWidth: true
+            }
+            Button {
+                icon.name: 'document-export'
+                text: i18n("Export")
+                onClicked: file.save(cfg_items)
+                enabled: !!items.count
+                Layout.fillWidth: true
+            }
+        }
+
+        RowLayout {
+            Label {
+                text: i18n("Auto backup")
+            }
+            Kirigami.ActionTextField {
+                id: autoBackupFileField
+                readOnly: true
+                onPressed: file.select().then(file => cfg_autoBackupFile = file)
+                Layout.fillWidth: true
+                rightActions: [
+                    Kirigami.Action {
+                        visible: !!cfg_autoBackupFile
+                        icon.name: 'edit-clear'
+                        onTriggered: cfg_autoBackupFile = null
+                    }
+                ]
+            }
+        }
+
+        File {
+            id: file
+            defaultSuffix: "hapi"
+            nameFilters: ["Home Assistant Plasmoid Items (*.hapi)"]
+        }
     }
 
     Component {
@@ -175,5 +237,11 @@ ColumnLayout {
 
     function arrayToObject(array, key) {
         return array.reduce((o, e) => (o[e[key]] = e,o), {})
+    }
+
+    function saveConfig() {
+        if (cfg_autoBackupFile) {
+            file.write(cfg_autoBackupFile, cfg_items)
+        }
     }
 }

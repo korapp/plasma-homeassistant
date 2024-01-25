@@ -17,5 +17,6 @@
     <entry name="items" type="string">
       <default>[]</default>
     </entry>
+    <entry name="autoBackupFile" type="string"></entry>
   </group>
 </kcfg>
