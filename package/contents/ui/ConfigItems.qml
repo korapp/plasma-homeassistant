@@ -117,11 +117,13 @@ ColumnLayout {
             property int index
             property var item
             signal accepted(int index, var item)
+            readonly property bool acceptable: !!contentItem.item.entity_id
 
             footer: DialogButtonBox {
                 standardButtons: DialogButtonBox.Ok | DialogButtonBox.Cancel
                 onRejected: dialog.close()
                 onAccepted: dialog.accepted(index, item) || dialog.close()
+                Component.onCompleted: standardButton(DialogButtonBox.Ok).enabled = Qt.binding(() => acceptable)
             }
 
             contentItem: ConfigItem {
