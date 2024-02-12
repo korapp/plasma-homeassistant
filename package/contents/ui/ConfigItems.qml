@@ -3,17 +3,46 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.kde.kirigami as Kirigami
+import org.kde.kcmutils as KCM
 
 import "../code/model.mjs" as Model
 import "."
 
-ColumnLayout {
+KCM.ScrollViewKCM {
     property string cfg_items
     property ListModel items: ListModel { dynamicRoles: true }
     property var services: ({})
     property var entities: ({})
     property bool busy: true
     property Client ha
+
+    header: Kirigami.InlineMessage {
+        Layout.fillWidth: true
+        text: ha?.errorString
+        visible: !!text
+        type: Kirigami.MessageType.Error
+    }
+
+    footer: Button {
+        icon.name: 'list-add'
+        text: i18n("Add")
+        enabled: !busy
+        onClicked: openDialog(new Model.ConfigEntity())
+    }
+
+    view: ListView {
+        id: itemList
+        model: Object.keys(entities).length ? items : []
+        delegate: EntityListItem {}
+        moveDisplaced: Transition {
+            NumberAnimation { properties: "y"; duration: Kirigami.Units.longDuration }
+        }
+
+        BusyIndicator {
+            anchors.centerIn: parent
+            visible: busy
+        }
+    }
 
     Component.onCompleted: {
         items.append(JSON.parse(cfg_items))
@@ -28,41 +57,6 @@ ColumnLayout {
                 services = s
                 busy = false
             }).catch(() => busy = false)
-    }
-
-    Kirigami.InlineMessage {
-        Layout.fillWidth: true
-        text: ha?.errorString
-        visible: !!text
-        type: Kirigami.MessageType.Error
-    }
-
-    ScrollView {
-        Layout.fillHeight: true
-        Layout.fillWidth: true
-        contentHeight: itemList.implicitHeight
-        
-        ListView {
-            id: itemList
-            model: Object.keys(entities).length ? items : []
-            delegate: EntityListItem {}
-            moveDisplaced: Transition {
-                NumberAnimation { properties: "y"; duration: Kirigami.Units.longDuration }
-            }
-
-            BusyIndicator {
-                anchors.centerIn: parent
-                visible: busy
-            }
-        }
-    }
-
-    Button {
-        icon.name: 'list-add'
-        text: i18n("Add")
-        enabled: !busy
-        onClicked: openDialog(new Model.ConfigEntity())
-        Layout.fillWidth: true
     }
 
     component EntityListItem: Item { // Wrapper for ListItemDragHandle
