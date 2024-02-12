@@ -1,7 +1,7 @@
 pragma Singleton
 
-import QtQuick 2.0
-import org.kde.ksvg 1.0 as KSvg
+import QtQuick
+import org.kde.ksvg as KSvg
 
 KSvg.Svg {
     imagePath: Qt.resolvedUrl("mdi.svgz")

@@ -1,6 +1,6 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.notification 1.0
+import org.kde.notification
 
 import "components"
 
