@@ -37,14 +37,18 @@ Kirigami.FormLayout {
         id: url
         editable: true
         onModelChanged: currentIndex = indexOfValue(cfg_url)
-        onFocusChanged: !focus && onValueChanged(editText)
-        onActivated: onValueChanged(editText)
+        onActiveFocusChanged: !activeFocus && setValue(editText)
+        onHoveredChanged: !hovered && setValue(editText)
+        onEditTextChanged: editText !== cfg_url && configurationChanged()
+        onActivated: {
+            secrets.restore(editText)
+            setValue(editText)
+        }
         Kirigami.FormData.label: i18n("Home Assistant URL")
         Layout.fillWidth: true
 
-        function onValueChanged(value) {
-            cfg_url = value
-            secrets.restore(editText)
+        function setValue(value) {
+            cfg_url = editText = value ? value.replace(/\s+|\/+\s*$/g,'') : ''
         }
     }
 
