@@ -3,22 +3,21 @@ import QtQuick.Controls 2.0
 
 import org.kde.kirigami 2.4 as Kirigami
 
+import "components"
+
 Kirigami.FormLayout {
     property var item
     readonly property var source: item.entity_id && entities[item.entity_id] || {}
 
-    ComboBox {
-        model: Object.keys(entities).sort()
-        editable: true
-        currentIndex: -1
+    TextField {
         Kirigami.FormData.label: i18n("Entity")
-        Component.onCompleted: {
-            editText = item.entity_id
-            currentIndex = model.indexOf(editText)
-        }
-        onCurrentTextChanged: {
-            item.entity_id = currentText
+        text: item.entity_id
+        onEditingFinished: {
+            item.entity_id = text
             item = item
+        }
+        Autocompletion {
+            model: Object.keys(entities).sort()
         }
     }
 

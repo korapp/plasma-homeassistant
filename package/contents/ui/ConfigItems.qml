@@ -2,20 +2,21 @@ import QtQuick 2.0
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.0
 
-import org.kde.kirigami 2.4 as Kirigami
+import org.kde.kirigami 2.5 as Kirigami
 
 import "../code/model.mjs" as Model
 import "."
 
 ColumnLayout {
     property string cfg_items
-    property var items: JSON.parse(cfg_items)
+    property ListModel items: ListModel { dynamicRoles: true }
     property var services: ({})
     property var entities: ({})
     property bool busy: true
     property Client ha
 
     Component.onCompleted: {
+        items.append(JSON.parse(cfg_items))
         ha = ClientFactory.getClient(this, plasmoid.configuration.url)
         ha.ready.connect(fetchData)
     }
@@ -44,8 +45,13 @@ ColumnLayout {
         ListView {
             id: itemList
             model: Object.keys(entities).length ? items : []
-            delegate: listItem
-            spacing: Kirigami.Units.mediumSpacing
+            delegate: Kirigami.DelegateRecycler {
+                width: itemList.width
+                sourceComponent: listItemComponent
+            }
+            moveDisplaced: Transition {
+                NumberAnimation { properties: "y"; duration: Kirigami.Units.longDuration }
+            }
 
             BusyIndicator {
                 anchors.centerIn: parent
@@ -63,42 +69,44 @@ ColumnLayout {
     }
 
     Component {
-        id: listItem
-        RowLayout {
-            width: ListView.view.width
-            DynamicIcon {
-                name: modelData.icon || entities[modelData.entity_id].attributes.icon || ''
-                Layout.preferredWidth: parent.height
-            }
-            Column {
-                Label {
-                    text: modelData.name || entities[modelData.entity_id].attributes.friendly_name
+        id: listItemComponent
+        Kirigami.SwipeListItem {
+            id: listItem
+            readonly property var entity: entities[model.entity_id]
+            RowLayout {
+                Kirigami.ListItemDragHandle {
+                    listItem: listItem
+                    listView: itemList
+                    onMoveRequested: items.move(oldIndex, newIndex, 1)
+                    onDropped: save()
                 }
-                Label {
-                    text: modelData.entity_id
-                    font: Kirigami.Theme.smallFont
-                    opacity: 0.6
+                DynamicIcon {
+                    name: model.icon || (entity && entity.attributes.icon) || ''
+                    Layout.preferredWidth: parent.height
+                    Layout.preferredHeight: parent.height
                 }
-                Layout.fillWidth: true
+                Column {
+                    Label {
+                        text: model.name || (entity && entity.attributes.friendly_name) || 'Unknown'
+                    }
+                    Label {
+                        text: model.entity_id
+                        font: Kirigami.Theme.smallFont
+                        opacity: 0.6
+                    }
+                    Layout.fillWidth: true
+                }
             }
-            ToolButton {
-                icon.name: 'arrow-up'
-                enabled: index > 0
-                onClicked: swapItems(index, index - 1)
-            }
-            ToolButton {
-                icon.name: 'arrow-down'
-                enabled: index < items.length - 1
-                onClicked: swapItems(index, index + 1)
-            }
-            ToolButton {
-                icon.name: 'edit-entry'
-                onClicked: openDialog(new Model.ConfigEntity(modelData), index)
-            }
-            ToolButton {
-                icon.name: 'delete'
-                onClicked: removeItem(index)
-            }
+            actions: [
+                Kirigami.Action {
+                    iconName: 'edit-entry'
+                    onTriggered: openDialog(new Model.ConfigEntity(model), index)
+                },
+                Kirigami.Action {
+                    icon.name: 'delete'
+                    onTriggered: removeItem(index)
+                }
+            ]
         }
     }
 
@@ -109,11 +117,13 @@ ColumnLayout {
             property int index
             property var item
             signal accepted(int index, var item)
+            readonly property bool acceptable: !!contentItem.item.entity_id
 
             footer: DialogButtonBox {
                 standardButtons: DialogButtonBox.Ok | DialogButtonBox.Cancel
                 onRejected: dialog.close()
                 onAccepted: dialog.accepted(index, item) || dialog.close()
+                Component.onCompleted: standardButton(DialogButtonBox.Ok).enabled = Qt.binding(() => acceptable)
             }
 
             contentItem: ConfigItem {
@@ -131,38 +141,34 @@ ColumnLayout {
         dialog.open()
         dialog.onAccepted.connect((index, item) => {
             if (~index) {
-                return updateItem(item, index)
+                return updateItem(item.toJSON(), index)
             }
-            return addItem(item)
+            return addItem(item.toJSON())
         })
     }
 
     function save() {
-        cfg_items = JSON.stringify(items, (key, value) => value || undefined)
-    }
-
-    function swapItems(index1, index2) {
-        if (index1 < 0 || index2 < 0 || index1 > items.length || index2 > items.length) {
-            return
+        const array = []
+        for (let i = 0; i < items.count; i++) {
+            array.push(items.get(i))
         }
-        [items[index2], items[index1]] = [items[index1], items[index2]]
-        save()
+        cfg_items = JSON.stringify(array, (key, value) => value || undefined)
     }
 
     function removeItem(index) {
         if (index >= items.length || index < 0) return
-        items.splice(index, 1)
+        items.remove(index)
         save()
     }
 
     function addItem(item) {
-        items.push(item)
+        items.append(item)
         save()
     }
 
     function updateItem(item, index) {
         if (index >= items.length || index < 0) return
-        items[index] = item
+        items.set(index, item)
         save()
     }
 
