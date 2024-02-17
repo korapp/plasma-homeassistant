@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.components as PlasmaComponents3
 
@@ -67,6 +68,18 @@ PlasmaExtras.Representation {
                 text: i18n("Show requirements")
                 onTriggered: Qt.openUrlExternally(`${plasmoid.metaData.website}/tree/v${plasmoid.metaData.version}#requirements`)
             }
+        }
+    }
+
+    Loader {
+        anchors.centerIn: parent
+        active: plasmoid.configurationRequired
+            && (plasmoid.formFactor === PlasmaCore.Types.Vertical
+            || plasmoid.formFactor === PlasmaCore.Types.Horizontal)
+        sourceComponent: PlasmaComponents3.Button {
+            icon.name: "configure"
+            text: i18nd("plasmashellprivateplugin", "Configure…")
+            onClicked: plasmoid.internalAction("configure").trigger()
         }
     }
 }
