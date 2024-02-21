@@ -12,9 +12,9 @@ function getDisplayValue({ state, domain, attribute, attributes }) {
     return ''
 }
 
-export function Entity({ entity_id = '', domain, name, icon, attribute = '', default_action = {} }, { state, attributes = {} } = {}) {
+export function Entity({ entity_id = '', name, icon, attribute = '', default_action = {} } = {}, data = {}) {
+    const { state = '', attributes = {} } = data
     this.entity_id = entity_id
-    this.domain = domain
     this.name = name || attributes.friendly_name || ''
     this.icon = icon || attributes.icon || ''
     this.attribute = attribute

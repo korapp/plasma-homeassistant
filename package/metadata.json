@@ -1,26 +1,21 @@
  
 {
+    "KPackageStructure": "Plasma/Applet",
     "KPlugin": {
         "Authors": [
             {
-                "Email": "korapps@outlook.com",
                 "Name": "Krzysztof Korab"
             }
         ],
         "Category": "Online Services",
         "Description": "Home Assistant",
-        "EnabledByDefault": true,
         "Icon": "go-home-symbolic",
         "Id": "com.github.korapp.homeassistant",
         "License": "GPLv3",
         "Name": "Home Assistant",
-        "ServiceTypes": [
-            "Plasma/Applet"
-        ],
         "Version": "0.1.0",
         "Website": "https://github.com/korapp/plasma-homeassistant"
     },
-    "X-Plasma-API": "declarativeappletscript",
-    "X-Plasma-MainScript": "ui/main.qml",
+    "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-StandAloneApp": true
 }
