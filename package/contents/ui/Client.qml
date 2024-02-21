@@ -6,7 +6,7 @@ import "components"
 BaseObject {
     property string baseUrl
     property string token
-    property var subscribeState: ws.subscribeState
+    property var subscribeEntities: ws.subscribeEntities
     property var callService: ws.callService
     property var getServices: ws.getServices
     property var getStates: ws.getStates
@@ -101,21 +101,14 @@ BaseObject {
 
         function notifyStateUpdate(msg) {
             const callback = subscriptions.get(msg.id)
-            return callback && callback(msg.event.variables.trigger.to_state)
+            return callback && callback(msg.event)
         }
 
-        function subscribeState(entities, callback) {
-            if (!callback) return
-            const subscription = subscribe({
-                "platform": "state",
-                "entity_id": entities
-            })
+        function subscribeEntities(entity_ids, callback) {
+            if (!entity_ids) return
+            const subscription = command({"type": "subscribe_entities", entity_ids})
             subscriptions.set(subscription, callback)
             return () => unsubscribe(subscription)
-        }
-
-        function subscribe(trigger) {
-            return command({"type": "subscribe_trigger", trigger})
         }
 
         function unsubscribe(subscription) {

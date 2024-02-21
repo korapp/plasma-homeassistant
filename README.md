@@ -24,6 +24,7 @@ Add Home Assistant to your plasma desktop.
 
 * Active KDE Wallet
 * KDE Plasma >= 6.0
+* Home Assistant >= 2022.4
 * **Qt WebSocket package installed**
   
   Base | Required package

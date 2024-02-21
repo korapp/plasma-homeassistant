@@ -51,21 +51,29 @@ PlasmoidItem {
         onItemsChanged.connect(subscribe)
     }
 
+    function processData(event) {
+        if (event.a) initState(event.a)
+        if (event.c) updateState(event.c)
+    }
+
     function updateState(state) {
-        const itemIdx = items.findIndex(i => i.entity_id === state.entity_id)
-        const configItem = items[itemIdx]
-        const newItem = new Model.Entity(configItem, state)
-        const oldValue = itemModel.get(itemIdx).value
-        itemModel.set(itemIdx, newItem)
-        if (configItem.notify && oldValue !== newItem.value) {
-            notifications.createNotification(newItem.name + " " + newItem.value)
+        for(let id in state) {
+            const itemIdx = items.findIndex(i => i.entity_id === id)
+            const change = state[id]['+']
+            const item = itemModel.get(itemIdx)
+            const newItem = new Model.Entity(item, change)
+            const oldValue = item.value
+            itemModel.set(itemIdx, newItem)
+            if (items[itemIdx].notify && oldValue !== newItem.value) {
+                notifications.createNotification(newItem.name + " " + newItem.value)
+            }
         }
     }
 
-    function initState(data) {
+    function initState(state) {
         itemModel.clear()
         items.forEach((i, idx) => {
-            const entityData = data.find(e => e.entity_id === i.entity_id)
+            const entityData = state[i.entity_id]
             itemModel.insert(idx, new Model.Entity(i, entityData))
         })
         initialized = true
@@ -75,8 +83,7 @@ PlasmoidItem {
         unsubscribe()
         if (!items.length) return
         const entities = items.map(i => i.entity_id)
-        ha.getStates(entities).then(initState)
-        cancelSubscription = ha.subscribeState(entities, updateState)
+        cancelSubscription = ha.subscribeEntities(entities, processData)
     }
 
     function unsubscribe() {
