@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick
 
 QtObject {
     default property list<QtObject> data
