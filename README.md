@@ -32,7 +32,7 @@ Add Home Assistant to your plasma desktop.
   Debian, Ubuntu | qml6-module-qtwebsockets
   Arch | qt6-websockets
   Fedora | qt6-qtwebsockets-devel
-  openSUSE | libQt6WebSockets6
+  openSUSE | qt6-websockets-imports
   NixOS | libsForQt6.qt6.qtwebsockets
 
   **Please remember to restart plasma or re-login after installing the dependency.**
