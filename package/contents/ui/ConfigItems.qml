@@ -41,6 +41,7 @@ ColumnLayout {
         Layout.fillHeight: true
         Layout.fillWidth: true
         contentHeight: itemList.implicitHeight
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         
         ListView {
             id: itemList

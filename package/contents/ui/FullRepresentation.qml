@@ -24,6 +24,8 @@ PlasmaExtras.Representation {
     Component {
         id: gridComponent
         ScrollView {
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
             GridView {
                 interactive: false
                 clip: true

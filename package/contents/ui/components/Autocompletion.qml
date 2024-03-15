@@ -34,6 +34,8 @@ Popup {
     onClosed: target.focus = false
 
     contentItem: ScrollView {
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
         ListView {
             id: list
             model: visible ? getModel() : null
