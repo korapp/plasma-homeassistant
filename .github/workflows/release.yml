@@ -25,6 +25,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: false
+          release_branches: release/.*,master
 
   release:
     name: "Release"
