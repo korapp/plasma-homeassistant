@@ -2,7 +2,7 @@ name: "Release"
 on: 
   push:
     branches:
-      - master
+      - 'release/**'
 
 jobs:
   bump:
@@ -16,14 +16,17 @@ jobs:
       changelog: ${{ steps.tag_version.outputs.changelog }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Bump version and push tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
+        uses: ./.github/actions/github-tag-action
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: false
+          release_branches: release/.*
+          tag_filter: '^v0'
+          
 
   release:
     name: "Release"
@@ -34,7 +37,7 @@ jobs:
     if: ${{ needs.bump.outputs.new_tag != null }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
