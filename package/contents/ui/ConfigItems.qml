@@ -6,10 +6,12 @@ import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
 
 import "../code/model.mjs" as Model
+import "components"
 import "."
 
 KCM.ScrollViewKCM {
     property string cfg_items
+    property alias cfg_autoBackupFile: autoBackupFileField.text
     property ListModel items: ListModel { dynamicRoles: true }
     property var services: ({})
     property var entities: ({})
@@ -23,11 +25,70 @@ KCM.ScrollViewKCM {
         type: Kirigami.MessageType.Error
     }
 
-    footer: Button {
-        icon.name: 'list-add'
-        text: i18n("Add")
-        enabled: !busy
-        onClicked: openDialog(new Model.ConfigEntity())
+    footer: ColumnLayout {
+        RowLayout {
+            enabled: !busy
+            Button {
+                icon.name: 'list-add'
+                text: i18n("Add")
+                onClicked: openDialog(new Model.ConfigEntity())
+                Layout.fillWidth: true
+            }
+            Button {
+                icon.name: 'application-menu'
+                down: backupMenu.visible
+                onClicked: backupMenu.visible = !backupMenu.visible
+            }
+        }
+            
+        ColumnLayout {
+            id: backupMenu
+            visible: false
+
+            RowLayout {
+                Button {
+                    icon.name: 'document-import'
+                    text: i18n("Import")
+                    onClicked: file.open().then(data => {
+                        setItems(data)
+                        save()
+                    })
+                    Layout.fillWidth: true
+                }
+                Button {
+                    icon.name: 'document-export'
+                    text: i18n("Export")
+                    onClicked: file.save(cfg_items)
+                    enabled: !!items.count
+                    Layout.fillWidth: true
+                }
+            }
+
+            RowLayout {
+                Label {
+                    text: i18n("Auto backup")
+                }
+                Kirigami.ActionTextField {
+                    id: autoBackupFileField
+                    readOnly: true
+                    onPressed: file.select().then(file => cfg_autoBackupFile = file)
+                    Layout.fillWidth: true
+                    rightActions: [
+                        Kirigami.Action {
+                            visible: !!cfg_autoBackupFile
+                            icon.name: 'edit-clear'
+                            onTriggered: cfg_autoBackupFile = null
+                        }
+                    ]
+                }
+            }
+
+            File {
+                id: file
+                defaultSuffix: "hapi"
+                nameFilters: ["Home Aassistant Plasma Items (*.hapi)"]
+            }
+        }
     }
 
     view: ListView {
@@ -45,9 +106,13 @@ KCM.ScrollViewKCM {
     }
 
     Component.onCompleted: {
-        items.append(JSON.parse(cfg_items))
+        setItems(cfg_items)
         ha = ClientFactory.getClient(this, plasmoid.configuration.url)
         ha.ready.connect(fetchData)
+    }
+
+    function setItems(data) {
+        items.append(JSON.parse(data))
     }
 
     function fetchData() {
@@ -159,5 +224,11 @@ KCM.ScrollViewKCM {
 
     function arrayToObject(array, key) {
         return array.reduce((o, e) => (o[e[key]] = e,o), {})
+    }
+
+    function saveConfig() {
+        if (cfg_autoBackupFile) {
+            file.write(cfg_autoBackupFile, cfg_items)
+        }
     }
 }
