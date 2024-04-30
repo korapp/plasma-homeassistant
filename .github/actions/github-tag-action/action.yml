@@ -32,7 +32,7 @@ inputs:
     default: "v"
   tag_filter:
     description: "Additional filtering rule while looking for the latest tag"
-    required: "false"
+    required: false
   append_to_pre_release_tag:
     description: "A suffix to a pre-release tag name (default: `<branch>`)."
     required: false
