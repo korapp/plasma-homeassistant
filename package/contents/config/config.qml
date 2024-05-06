@@ -9,7 +9,7 @@ ConfigModel {
     }
     ConfigCategory {
         name: i18n("Items")
-        icon: "view-list-symbolic"
+        icon: "view-list-details"
         source: "ConfigItems.qml"
     }
 }
