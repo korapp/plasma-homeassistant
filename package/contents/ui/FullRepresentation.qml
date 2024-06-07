@@ -37,9 +37,9 @@ PlasmaExtras.Representation {
                 cellHeight: minItemWidth / 2
                 model: itemModel
                 delegate: Entity {
-                    id: entity
                     width: GridView.view.cellWidth - Kirigami.Units.smallSpacing
                     height: GridView.view.cellHeight - Kirigami.Units.smallSpacing
+                    contentItem: EntityDelegateTile {}
                 }
             }
         }

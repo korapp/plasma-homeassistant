@@ -24,6 +24,7 @@ PlasmoidItem {
     property bool initialized: false
     property QtObject ha
     property var cancelSubscription
+    property var fields: ({})
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)
     onUrlChanged: url && initClient(url)
@@ -43,12 +44,36 @@ PlasmoidItem {
     function initClient(url) {
         if (ha) {
             unsubscribe()
-            ha.ready.disconnect(subscribe)
-            onItemsChanged.disconnect(subscribe)
+            ha.ready.disconnect(initData)
+            onItemsChanged.disconnect(fetchDataAndSubscribe)
         }
         ha = ClientFactory.getClient(this, url)
-        ha.ready.connect(subscribe)
-        onItemsChanged.connect(subscribe)
+        ha.ready.connect(initData)
+    }
+
+    function initData() {
+        fetchDataAndSubscribe()
+        onItemsChanged.connect(fetchDataAndSubscribe)
+    }
+
+    function fetchDataAndSubscribe() {
+        fetchFieldsInfo()
+        subscribe()
+    }
+
+    function fetchFieldsInfo() {
+        if (!items.length) return
+        ha.getServices().then(s => {
+            fields = items.reduce((a, i) => {
+                if (i.scroll_action) {
+                    const field = i.scroll_action.data_field
+                    const key = i.scroll_action.domain + i.scroll_action.service + field
+                    const serviceFields = s[i.scroll_action.domain][i.scroll_action.service].fields
+                    a[key] = (serviceFields[field] || serviceFields.advanced_fields.fields[field])?.selector
+                }
+                return a
+            },{})
+        })
     }
 
     function processData(event) {
