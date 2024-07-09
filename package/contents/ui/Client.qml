@@ -124,7 +124,7 @@ BaseObject {
                 .then(() => subscriptions.delete(subscription))
         }
 
-        function callService({ domain, service, data, target } = {}) {
+        function callService({ domain, service, target } = {}, data) {
             return commandAsync({
                 "type": "call_service",
                 "domain": domain,

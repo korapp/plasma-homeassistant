@@ -204,9 +204,9 @@ ColumnLayout {
         dialog.open()
         dialog.onAccepted.connect((index, item) => {
             if (~index) {
-                return updateItem(item.toJSON(), index)
+                return updateItem(item, index)
             }
-            return addItem(item.toJSON())
+            return addItem(item)
         })
     }
 

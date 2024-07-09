@@ -23,6 +23,7 @@ Item {
     property bool initialized: false
     property QtObject ha
     property var cancelSubscription
+    property var fields: ({})
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)
     onUrlChanged: url && initClient(url)
@@ -40,6 +41,22 @@ Item {
         ha = ClientFactory.getClient(this, url)
         ha.ready.connect(subscribe)
         onItemsChanged.connect(subscribe)
+        onItemsChanged.connect(fetchFieldsInfo)
+    }
+
+    function fetchFieldsInfo() {
+        if (!items.length) return
+        ha.getServices().then(s => {
+            fields = items.reduce((a, i) => {
+                if (i.scroll_action) {
+                    const field = i.scroll_action.data_field
+                    const key = i.scroll_action.domain + i.scroll_action.service + field
+                    const serviceFields = s[i.scroll_action.domain][i.scroll_action.service].fields
+                    a[key] = (serviceFields[field] || serviceFields.advanced_fields.fields[field] || {}).selector
+                }
+                return a
+            },{})
+        })
     }
 
     function updateState(state) {
