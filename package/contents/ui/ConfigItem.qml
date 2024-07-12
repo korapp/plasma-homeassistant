@@ -22,16 +22,21 @@ Kirigami.FormLayout {
         }
     }
 
-    ComboBox {
-        displayText: currentText || item.attribute
-        model: source.attributes ? Object.keys(source.attributes) : []
-        onActivated: item.attribute = model[index]
-        onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
-        enabled: Kirigami.FormData.checked
-        onEnabledChanged: activated(enabled ? currentIndex : -1)
-        Kirigami.FormData.checked: !!item.attribute
-        Kirigami.FormData.label: i18n("Display attribute")
-        Kirigami.FormData.checkable: true
+    Row {
+        Kirigami.FormData.label: i18n("Display attribute") 
+        CheckBox {
+            id: useAttribute
+            anchors.verticalCenter: parent.verticalCenter
+            checked: !!item.attribute
+        }
+        ComboBox {
+            displayText: currentText || item.attribute
+            model: source.attributes ? Object.keys(source.attributes) : []
+            onActivated: index => item.attribute = model[index]
+            onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
+            enabled: useAttribute.checked
+            onEnabledChanged: activated(enabled ? currentIndex : -1)
+        }
     }
 
     TextField {
