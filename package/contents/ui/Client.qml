@@ -11,6 +11,7 @@ BaseObject {
     property var getServices: ws.getServices
     property var getStates: ws.getStates
     property string errorString: ""
+    readonly property alias ready: ws.ready
     readonly property bool configured: ws.url && token
     
     onBaseUrlChanged: ws.url = baseUrl.replace('http', 'ws') + "/api/websocket"
@@ -19,17 +20,7 @@ BaseObject {
     Connections {
         target: ws
         function onError(msg) { errorString = msg }
-        function onEstablished() { errorString = "" }
-    }
-
-    readonly property QtObject ready: QtObject {
-        function connect (fn) {
-            if (ws.ready) fn()
-            ws.established.connect(fn)
-        }
-        function disconnect (fn) {
-            ws.established.disconnect(fn)
-        }
+        function onReadyChanged() { ws.ready && (errorString = "") }
     }
 
     Timer {
@@ -59,11 +50,9 @@ BaseObject {
         property var subscriptions: new Map()
         property var promises: new Map()
         readonly property bool open: status === WebSocket.Open
-        signal established
         signal error(string msg)
 
         onOpenChanged: ready = false
-        onReadyChanged: ready && established()
 
         onTextMessageReceived: message => {
             pingPongTimer.reset()

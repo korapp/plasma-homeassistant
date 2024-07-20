@@ -27,7 +27,8 @@ PlasmoidItem {
     property var fields: ({})
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)
-    onUrlChanged: url && initClient(url)
+    onUrlChanged: initClient(url)
+    onItemsChanged: fetchDataAndSubscribe()
 
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
@@ -44,19 +45,16 @@ PlasmoidItem {
     function initClient(url) {
         if (ha) {
             unsubscribe()
-            ha.ready.disconnect(initData)
-            onItemsChanged.disconnect(fetchDataAndSubscribe)
+            ha.readyChanged.disconnect(fetchDataAndSubscribe)
         }
-        ha = ClientFactory.getClient(this, url)
-        ha.ready.connect(initData)
-    }
-
-    function initData() {
+        if (!url) return ha = null
+        ha = ClientFactory.getClient(root, url)     
         fetchDataAndSubscribe()
-        onItemsChanged.connect(fetchDataAndSubscribe)
+        ha.readyChanged.connect(fetchDataAndSubscribe)
     }
 
     function fetchDataAndSubscribe() {
+        if (!ha?.ready) return
         fetchFieldsInfo()
         subscribe()
     }
