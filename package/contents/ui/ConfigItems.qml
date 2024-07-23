@@ -20,7 +20,7 @@ ColumnLayout {
     Component.onCompleted: {
         setItems(cfg_items)
         ha = ClientFactory.getClient(this, plasmoid.configuration.url)
-        ha.ready.connect(fetchData)
+        ha.readyChanged.connect(fetchData)
     }
 
     function setItems(data) {
@@ -28,6 +28,7 @@ ColumnLayout {
     }
 
     function fetchData() {
+        if (!ha.ready) return
         return Promise.all([ha.getStates(), ha.getServices()])
             .then(([e, s]) => {
                 entities = arrayToObject(e, 'entity_id')

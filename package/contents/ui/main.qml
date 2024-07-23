@@ -26,7 +26,8 @@ Item {
     property var fields: ({})
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)
-    onUrlChanged: url && initClient(url)
+    onUrlChanged: initClient(url)
+    onItemsChanged: fetchDataAndSubscribe()
 
     Notifications {
         id: notifications
@@ -35,13 +36,18 @@ Item {
     function initClient(url) {
         if (ha) {
             unsubscribe()
-            ha.ready.disconnect(subscribe)
-            onItemsChanged.disconnect(subscribe)
+            ha.readyChanged.disconnect(fetchDataAndSubscribe)
         }
-        ha = ClientFactory.getClient(this, url)
-        ha.ready.connect(subscribe)
-        onItemsChanged.connect(subscribe)
-        onItemsChanged.connect(fetchFieldsInfo)
+        if (!url) return ha = null
+        ha = ClientFactory.getClient(root, url)     
+        fetchDataAndSubscribe()
+        ha.readyChanged.connect(fetchDataAndSubscribe)
+    }
+
+    function fetchDataAndSubscribe() {
+        if (!(ha && ha.ready)) return
+        fetchFieldsInfo()
+        subscribe()
     }
 
     function fetchFieldsInfo() {
