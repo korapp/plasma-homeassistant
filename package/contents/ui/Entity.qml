@@ -1,64 +1,71 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 
-import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.components as PlasmaComponents3
-
 import org.kde.kirigami as Kirigami
 
-import 'mdi'
-
 PlasmaComponents3.Button {
-    enabled: !!model.default_action?.service
-    hoverEnabled: enabled
+    id: control
     down: model.active
     flat: plasmoid.configuration.flat
-    onClicked: ha.callService(model.default_action)
-
-    contentItem: GridLayout {
-        id: grid
-        columns: 2
-        rows: model.value ? 2 : 1
-        clip: true
-        columnSpacing: Kirigami.Units.smallSpacing
-        rowSpacing: 0
-
-        DynamicIcon {
-            name: model.icon
-            Layout.rowSpan: model.value ? 2 : 1
-            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-        }
-
-        PlasmaExtras.Heading {
-            id: stateValue
-            level: 4
-            text: model.value
-            elide: Text.ElideRight
-            visible: !!text
-            wrapMode: Text.NoWrap
-            font.weight: Font.Bold
-            Layout.alignment: Qt.AlignBottom
-            Layout.fillWidth: true
-        }
-
-        PlasmaComponents3.Label {
-            id: label
-            text: name
-            elide: Text.ElideRight
-            Layout.alignment: model.value ? Qt.AlignTop : 0
-            Layout.fillWidth: true
-        }
-    }
+    enabled: !!actions.length
+    clip: true
+    readonly property var actions: actionLoaders.filter(c => c.item)
 
     PlasmaComponents3.ToolTip {
-        text: parent.enabled ? format(model.default_action.service) + name : ''
-        visible: hovered && text
+        visible: control.hovered && text
+        text: actions.map(c => c.item.tip).join("\n")
     }
 
     function format(underscoredText) {
-        return underscoredText
-            .split('_')
-            .reduce((o, w) => o += w[0].toUpperCase() + w.slice(1) + ' ','')
+        return underscoredText.replace(/_/g, ' ')
     }
+
+    readonly property list<Loader> actionLoaders: [
+        Loader {
+            active: !!default_action
+            sourceComponent: Component {
+                Connections {
+                    readonly property string tip: `Click to ${format(default_action.service)}`
+                    target: control
+                    function onClicked() {
+                        ha.callService(default_action)
+                    }
+                }
+            }
+        },
+        Loader {
+            active: model.active && !!scroll_action
+            anchors.fill: parent
+            parent: control
+            sourceComponent: Component {
+                Item {
+                    readonly property string tip: `Scroll to adjust ${format(scroll_action.data_field)}`
+                    readonly property var scrollAttributeField: fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
+                    readonly property var max: scrollAttributeField?.number.max || 1
+                    readonly property var min: scrollAttributeField?.number.min || 0
+                    property real position: (attributes[scroll_action.data_field] - min) / (max - min)
+                    
+                    WheelHandler {               
+                        acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
+                        orientation: Qt.Vertical
+                        onWheel: e => {
+                            const p = position + e.angleDelta.y / 360
+                            position = p > 1 ? 1 : p < 0 ? 0 : p
+                        }
+                        onActiveChanged: !active && ha.callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
+                    }
+                    Rectangle {
+                        radius: 3
+                        x: 1
+                        y: 1
+                        height: parent.height - 2 * y
+                        width: position * (parent.width - 2 * x)
+                        color: Kirigami.Theme.highlightColor
+                        opacity: 0.6
+                    }
+                }
+            }
+        }
+    ]
 }
