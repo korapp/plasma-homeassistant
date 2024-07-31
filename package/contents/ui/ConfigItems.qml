@@ -108,7 +108,7 @@ KCM.ScrollViewKCM {
     Component.onCompleted: {
         setItems(cfg_items)
         ha = ClientFactory.getClient(this, plasmoid.configuration.url)
-        ha.ready.connect(fetchData)
+        ha.readyChanged.connect(fetchData)
     }
 
     function setItems(data) {
@@ -116,6 +116,7 @@ KCM.ScrollViewKCM {
     }
 
     function fetchData() {
+        if (!ha?.ready) return
         return Promise.all([ha.getStates(), ha.getServices()])
             .then(([e, s]) => {
                 entities = arrayToObject(e, 'entity_id')
@@ -191,10 +192,11 @@ KCM.ScrollViewKCM {
         dialog.open()
         dialog.onItemAccepted.connect((index, item) => {
             if (~index) {
-                return updateItem(item.toJSON(), index)
+                return updateItem(item, index)
             }
-            return addItem(item.toJSON())
+            return addItem(item)
         })
+        dialog.closed.connect(dialog.destroy)
     }
 
     function save() {

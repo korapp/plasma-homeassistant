@@ -55,7 +55,7 @@ jobs:
       - name: Package
         run: |
           cd $ASSET_DIR
-          zip -r ../$ASSET_BASE_NAME-$RELEASE_VERSION.plasmoid *
+          zip -r ../$ASSET_BASE_NAME-$RELEASE_VERSION.plasmoid * -x "*.git*"
           cd ..
 
       - uses: ncipollo/release-action@v1
