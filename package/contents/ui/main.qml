@@ -32,7 +32,7 @@ PlasmoidItem {
 
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
-            text: i18n("Open in browser")
+            text: i18n("Open in Browser")
             icon.name: plasmoid.icon
             onTriggered: Qt.openUrlExternally(url)
         }
