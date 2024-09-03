@@ -5,9 +5,11 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
 
+import "components"
+
 KCM.SimpleKCM {
     property string cfg_url
-
+    property alias cfg_scrollStep: scrollStepSlider.value
     signal configurationChanged
 
     onCfg_urlChanged: secrets.restore(cfg_url)
@@ -71,6 +73,21 @@ KCM.SimpleKCM {
         Kirigami.UrlButton {
             url: cfg_url + "/profile/security"
             visible: cfg_url
+        }
+
+        Item {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18nc("@title:group", "Behavior")
+        }
+
+        SliderBox {
+            id: scrollStepSlider
+            from: 0.01
+            to: 0.15
+            stepSize: 0.01
+            textFromValue: v => i18ncp("@label", "%1 %pt", "%1 %pts", v)
+            Kirigami.FormData.label: i18nc("@label", "Scroll step")
+            Layout.fillWidth: true
         }
     }
 

@@ -109,6 +109,8 @@ MouseArea {
                     readonly property string tip: `Scroll to adjust ${format(scroll_action.data_field)}`
                     property var mapper: { mapper = store.getFieldScrollMapper(scroll_action, attributes) }
                     readonly property real attributeBasedPosition: mapper.normalize(attributes[mapper.attribute])
+                    readonly property var scrollStep: plasmoid.configuration.scrollStep
+                    readonly property int qtAngleDeltaPerStep: 120
                     property real position
                     onAttributeBasedPositionChanged: if (!pending || !wheel.active) position = attributeBasedPosition
 
@@ -118,7 +120,10 @@ MouseArea {
                         activeTimeout: 0.5
                         orientation: Qt.Vertical
                         onWheel: e => {
-                            const p = position + e.angleDelta.y / 3600
+                            const delta = (e.inverted ? -1 : 1) * e.angleDelta.y
+                            const p = position + (Math.abs(delta) < qtAngleDeltaPerStep
+                                ? delta / qtAngleDeltaPerStep * scrollStep
+                                : scrollStep * Math.sign(delta))
                             position = p > 1 ? 1 : p < 0 ? 0 : p
                         }
                         onActiveChanged: !active && callService(scroll_action, { [scroll_action.data_field]: mapper.denormalize(position) })

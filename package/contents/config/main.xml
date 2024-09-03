@@ -9,6 +9,9 @@
     <entry name="url" type="string">
       <default></default>
     </entry>
+    <entry name="scrollStep" type="double">
+      <default>0.03</default>
+    </entry>
   </group>
   <group name="Items">
     <entry name="items" type="string">
