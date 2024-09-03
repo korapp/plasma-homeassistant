@@ -5,10 +5,12 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
 
+import "components"
+
 KCM.SimpleKCM {
     property string cfg_url
     property alias cfg_notificationsEnabled: notificationsEnabled.checked
-
+    property alias cfg_scrollStep: scrollStepSlider.value
     signal configurationChanged
 
     onCfg_urlChanged: secrets.restore(cfg_url)
@@ -76,12 +78,22 @@ KCM.SimpleKCM {
 
         Item {
             Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18nc("@title:group", "Notifications")
+            Kirigami.FormData.label: i18nc("@title:group", "Behavior")
         }
 
         CheckBox {
             id: notificationsEnabled
             Kirigami.FormData.label: i18nc("@label", "Enable notifications")
+        }
+
+        SliderBox {
+            id: scrollStepSlider
+            from: 0.01
+            to: 0.15
+            stepSize: 0.01
+            textFromValue: v => i18ncp("@label", "%1 %pt", "%1 %pts", v)
+            Kirigami.FormData.label: i18nc("@label", "Scroll step")
+            Layout.fillWidth: true
         }
     }
 
