@@ -1,6 +1,6 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.kirigami as Kirigami
 
 import 'mdi'
 
@@ -16,7 +16,7 @@ Loader {
         }
     }
 
-    onNameChanged: {
+    onNameChanged: () => {
         if (!name || !~name.indexOf(':')) return
         [type, id] = name.split(':')
     }
@@ -30,7 +30,7 @@ Loader {
 
     Component {
         id: plasma
-        PlasmaCore.IconItem {
+        Kirigami.Icon {
             source: id
         }
     }

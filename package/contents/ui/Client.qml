@@ -1,16 +1,17 @@
-import QtQuick 2.0
-import QtWebSockets 1.0
+import QtQuick
+import QtWebSockets
 
 import "components"
 
 BaseObject {
     property string baseUrl
     property string token
-    property var subscribeState: ws.subscribeState
+    property var subscribeEntities: ws.subscribeEntities
     property var callService: ws.callService
     property var getServices: ws.getServices
     property var getStates: ws.getStates
     property string errorString: ""
+    readonly property alias ready: ws.ready
     readonly property bool configured: ws.url && token
     
     onBaseUrlChanged: ws.url = baseUrl.replace('http', 'ws') + "/api/websocket"
@@ -18,18 +19,8 @@ BaseObject {
     
     Connections {
         target: ws
-        onError: errorString = msg
-        onEstablished: errorString = ""
-    }
-
-    readonly property QtObject ready: QtObject {
-        function connect (fn) {
-            if (ws.ready) fn()
-            ws.established.connect(fn)
-        }
-        function disconnect (fn) {
-            ws.established.disconnect(fn)
-        }
+        function onError(msg) { errorString = msg }
+        function onReadyChanged() { ws.ready && (errorString = "") }
     }
 
     Timer {
@@ -59,13 +50,11 @@ BaseObject {
         property var subscriptions: new Map()
         property var promises: new Map()
         readonly property bool open: status === WebSocket.Open
-        signal established
         signal error(string msg)
 
         onOpenChanged: ready = false
-        onReadyChanged: ready && established()
 
-        onTextMessageReceived: {
+        onTextMessageReceived: message => {
             pingPongTimer.reset()
             const msg = JSON.parse(message)
             switch (msg.type) {
@@ -77,7 +66,7 @@ BaseObject {
             }
         }
 
-        onErrorStringChanged: errorString && error(errorString)
+        onErrorStringChanged: () => errorString && error(errorString)
 
         function reconnect() {
             active = false
@@ -101,21 +90,14 @@ BaseObject {
 
         function notifyStateUpdate(msg) {
             const callback = subscriptions.get(msg.id)
-            return callback && callback(msg.event.variables.trigger.to_state)
+            return callback && callback(msg.event)
         }
 
-        function subscribeState(entities, callback) {
-            if (!callback) return
-            const subscription = subscribe({
-                "platform": "state",
-                "entity_id": entities
-            })
+        function subscribeEntities(entity_ids, callback) {
+            if (!entity_ids) return
+            const subscription = command({"type": "subscribe_entities", entity_ids})
             subscriptions.set(subscription, callback)
             return () => unsubscribe(subscription)
-        }
-
-        function subscribe(trigger) {
-            return command({"type": "subscribe_trigger", trigger})
         }
 
         function unsubscribe(subscription) {
@@ -124,7 +106,7 @@ BaseObject {
                 .then(() => subscriptions.delete(subscription))
         }
 
-        function callService({ domain, service, data, target } = {}) {
+        function callService({ domain, service, target } = {}, data) {
             return commandAsync({
                 "type": "call_service",
                 "domain": domain,

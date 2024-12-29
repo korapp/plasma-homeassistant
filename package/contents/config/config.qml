@@ -1,5 +1,5 @@
-import QtQuick 2.0
-import org.kde.plasma.configuration 2.0
+import QtQuick
+import org.kde.plasma.configuration
 
 ConfigModel {
     ConfigCategory {
@@ -9,7 +9,7 @@ ConfigModel {
     }
     ConfigCategory {
         name: i18n("Items")
-        icon: "view-list-symbolic"
+        icon: "view-list-details"
         source: "ConfigItems.qml"
     }
 }

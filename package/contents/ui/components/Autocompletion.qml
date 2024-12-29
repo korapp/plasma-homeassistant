@@ -1,5 +1,5 @@
-import QtQuick 2.7
-import QtQuick.Controls 2.5
+import QtQuick
+import QtQuick.Controls
 
 Popup {
     property TextField target: parent

@@ -1,9 +1,9 @@
-import QtQuick 2.0
-import QtQuick.Controls 2.5
+import QtQuick
+import QtQuick.Controls
 
-import org.kde.plasma.core 2.1 as PlasmaCore
+import org.kde.kirigami as Kirigami
 
-PlasmaCore.IconItem {
+Kirigami.Icon {
     property var icon
     property int size
     property string message

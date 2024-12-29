@@ -1,20 +1,21 @@
-import QtQuick 2.0
+import QtQuick
 
-import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.plasma.plasmoid
+import org.kde.plasma.core as PlasmaCore
+import org.kde.kirigami as Kirigami
 
 import "."
 import "../code/model.mjs" as Model
 
-Item {
+PlasmoidItem {
     id: root
-    Plasmoid.compactRepresentation: CompactRepresentation {}
-    Plasmoid.fullRepresentation: FullRepresentation {}
+    compactRepresentation: CompactRepresentation {}
+    fullRepresentation: FullRepresentation {}
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
-    Plasmoid.configurationRequired: !ClientFactory.error && (!url || !ha || !ha.token || !items.length)
+    Plasmoid.configurationRequired: !ClientFactory.error && !(url && ha?.token && items.length)
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
-    Plasmoid.switchHeight: PlasmaCore.Units.iconSizes.enormous / 2
-    Plasmoid.switchWidth: PlasmaCore.Units.iconSizes.enormous
+    switchHeight: Kirigami.Units.iconSizes.enormous / 2
+    switchWidth: Kirigami.Units.iconSizes.enormous
     
     readonly property string url: plasmoid.configuration.url
     readonly property string cfgItems: plasmoid.configuration.items
@@ -23,9 +24,19 @@ Item {
     property bool initialized: false
     property QtObject ha
     property var cancelSubscription
+    property var fields: ({})
 
     onCfgItemsChanged: items = JSON.parse(cfgItems)
-    onUrlChanged: url && initClient(url)
+    onUrlChanged: initClient(url)
+    onItemsChanged: fetchDataAndSubscribe()
+
+    Plasmoid.contextualActions: [
+        PlasmaCore.Action {
+            text: i18n("Open in browser")
+            icon.name: plasmoid.icon
+            onTriggered: Qt.openUrlExternally(url)
+        }
+    ]
 
     Notifications {
         id: notifications
@@ -34,29 +45,58 @@ Item {
     function initClient(url) {
         if (ha) {
             unsubscribe()
-            ha.ready.disconnect(subscribe)
-            onItemsChanged.disconnect(subscribe)
+            ha.readyChanged.disconnect(fetchDataAndSubscribe)
         }
-        ha = ClientFactory.getClient(this, url)
-        ha.ready.connect(subscribe)
-        onItemsChanged.connect(subscribe)
+        if (!url) return ha = null
+        ha = ClientFactory.getClient(root, url)     
+        fetchDataAndSubscribe()
+        ha.readyChanged.connect(fetchDataAndSubscribe)
+    }
+
+    function fetchDataAndSubscribe() {
+        if (!ha?.ready) return
+        fetchFieldsInfo()
+        subscribe()
+    }
+
+    function fetchFieldsInfo() {
+        if (!items.length) return
+        ha.getServices().then(s => {
+            fields = items.reduce((a, i) => {
+                if (i.scroll_action) {
+                    const field = i.scroll_action.data_field
+                    const key = i.scroll_action.domain + i.scroll_action.service + field
+                    const serviceFields = s[i.scroll_action.domain][i.scroll_action.service].fields
+                    a[key] = (serviceFields[field] || serviceFields.advanced_fields.fields[field])?.selector
+                }
+                return a
+            },{})
+        })
+    }
+
+    function processData(event) {
+        if (event.a) initState(event.a)
+        if (event.c) updateState(event.c)
     }
 
     function updateState(state) {
-        const itemIdx = items.findIndex(i => i.entity_id === state.entity_id)
-        const configItem = items[itemIdx]
-        const newItem = new Model.Entity(configItem, state)
-        const oldValue = itemModel.get(itemIdx).value
-        itemModel.set(itemIdx, newItem)
-        if (configItem.notify && oldValue !== newItem.value) {
-            notifications.createNotification(newItem.name + " " + newItem.value)
+        for(let id in state) {
+            const itemIdx = items.findIndex(i => i.entity_id === id)
+            const change = state[id]['+']
+            const item = itemModel.get(itemIdx)
+            const newItem = new Model.Entity(item, change)
+            const oldValue = item.value
+            itemModel.set(itemIdx, newItem)
+            if (items[itemIdx].notify && oldValue !== newItem.value) {
+                notifications.createNotification(newItem.name + " " + newItem.value)
+            }
         }
     }
 
-    function initState(data) {
+    function initState(state) {
         itemModel.clear()
         items.forEach((i, idx) => {
-            const entityData = data.find(e => e.entity_id === i.entity_id)
+            const entityData = state[i.entity_id]
             itemModel.insert(idx, new Model.Entity(i, entityData))
         })
         initialized = true
@@ -66,19 +106,10 @@ Item {
         unsubscribe()
         if (!items.length) return
         const entities = items.map(i => i.entity_id)
-        ha.getStates(entities).then(initState)
-        cancelSubscription = ha.subscribeState(entities, updateState)
+        cancelSubscription = ha.subscribeEntities(entities, processData)
     }
 
     function unsubscribe() {
         cancelSubscription = typeof cancelSubscription === 'function' && cancelSubscription()
-    }
-
-    Component.onCompleted: {
-        plasmoid.setAction("open_in_browser", i18n("Open in browser"), plasmoid.icon)
-    }
-
-    function action_open_in_browser() {
-        Qt.openUrlExternally(url)
     }
 }
