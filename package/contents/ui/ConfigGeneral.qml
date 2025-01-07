@@ -8,7 +8,6 @@ import "components"
 
 Kirigami.FormLayout {
     property string cfg_url
-    property alias cfg_flat: flat.checked
 
     signal configurationChanged
 
@@ -73,16 +72,6 @@ Kirigami.FormLayout {
         text: `<a href="${url.editText}/profile/security">${url.editText}/profile/security</a>`
         onLinkActivated: Qt.openUrlExternally(link)
         visible: url.editText
-    }
-
-    Item {
-        Kirigami.FormData.isSection: true
-        Kirigami.FormData.label: i18n("Look")
-    }
-
-    CheckBox {
-        id: flat
-        Kirigami.FormData.label: i18n("Flat entities")
     }
 
     function saveConfig() {

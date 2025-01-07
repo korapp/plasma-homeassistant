@@ -12,4 +12,9 @@ ConfigModel {
         icon: "view-list-symbolic"
         source: "ConfigItems.qml"
     }
+    ConfigCategory {
+        name: i18n("Look")
+        icon: "preferences-desktop-theme"
+        source: "ConfigLook.qml"
+    }
 }

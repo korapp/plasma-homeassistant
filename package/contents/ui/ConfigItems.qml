@@ -11,6 +11,7 @@ import "."
 ColumnLayout {
     property string cfg_items
     property alias cfg_autoBackupFile: autoBackupFileField.text
+    property int cfg_itemDisplayDefault
     property ListModel items: ListModel { dynamicRoles: true }
     property var services: ({})
     property var entities: ({})
@@ -24,7 +25,8 @@ ColumnLayout {
     }
 
     function setItems(data) {
-        items.append(JSON.parse(data))
+        const rawItems = JSON.parse(data) || []
+        rawItems.forEach(item => items.append(new Model.ConfigEntity(item)))
     }
 
     function fetchData() {
@@ -44,12 +46,53 @@ ColumnLayout {
         type: Kirigami.MessageType.Error
     }
 
+    RowLayout {
+        Layout.maximumWidth: itemListScrollView.availableWidth - Kirigami.Units.largeSpacing
+        Label {
+            text: i18n("Global display mode")
+            Layout.fillWidth: true
+        }
+        ConfigItemActionBar {
+            Layout.alignment: Qt.AlignRight
+            actions: [
+                Kirigami.Action {
+                    text: i18n("Display in compact view")
+                    icon.name: "zoom-out-symbolic"
+                    checkable: true
+                    checked: cfg_itemDisplayDefault & DisplayFilterModel.Compact
+                    onTriggered: setDisplayDefaultAndItems(DisplayFilterModel.Compact, checked)
+                },
+                Kirigami.Action {
+                    text: i18n("Display in full view")
+                    icon.name: "zoom-original-symbolic"
+                    checkable: true
+                    checked: cfg_itemDisplayDefault & DisplayFilterModel.Full
+                    onTriggered: setDisplayDefaultAndItems(DisplayFilterModel.Full, checked)
+                }
+            ]
+        }
+    }
+
+    Kirigami.Separator {
+        Layout.fillWidth: true
+    }
+
+    function setDisplayDefaultAndItems(flag, set) {
+        cfg_itemDisplayDefault ^= flag
+        for (let i = 0; i < items.count; i++) {
+            const display = items.get(i).display
+            items.setProperty(i, "display", set ? (display | flag) : (display & ~flag))
+        }
+        save()
+    }
+
     ScrollView {
+        id: itemListScrollView
         Layout.fillHeight: true
         Layout.fillWidth: true
         contentHeight: itemList.implicitHeight
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-        
+
         ListView {
             id: itemList
             model: Object.keys(entities).length ? items : []
@@ -82,7 +125,7 @@ ColumnLayout {
             onClicked: backupMenu.visible = !backupMenu.visible
         }
     }
-        
+
     ColumnLayout {
         id: backupMenu
         visible: false
@@ -134,9 +177,16 @@ ColumnLayout {
 
     Component {
         id: listItemComponent
-        Kirigami.SwipeListItem {
+        Kirigami.AbstractListItem {
             id: listItem
             readonly property var entity: entities[model.entity_id]
+
+            function toggleDisplay(flag) {
+                updateItem({ display: model.display ^ flag }, index)
+            }
+
+            onClicked: openDialog(new Model.ConfigEntity(model), index)
+
             RowLayout {
                 Kirigami.ListItemDragHandle {
                     listItem: listItem
@@ -160,17 +210,37 @@ ColumnLayout {
                     }
                     Layout.fillWidth: true
                 }
-            }
-            actions: [
-                Kirigami.Action {
-                    iconName: 'edit-entry'
-                    onTriggered: openDialog(new Model.ConfigEntity(model), index)
-                },
-                Kirigami.Action {
-                    icon.name: 'delete'
-                    onTriggered: removeItem(index)
+                ConfigItemActionBar {
+                    actions: [
+                        Kirigami.Action {
+                            icon.name: 'edit-entry'
+                            onTriggered: openDialog(new Model.ConfigEntity(model), index)
+                            text: i18n("Edit")
+                            visible: containsMouse
+                        },
+                        Kirigami.Action {
+                            icon.name: 'delete'
+                            onTriggered: removeItem(index)
+                            text: i18n("Delete")
+                            visible: containsMouse
+                        },
+                        Kirigami.Action {
+                            text: i18n("Display in compact view")
+                            icon.name: "zoom-out-symbolic"
+                            checkable: true
+                            checked: model.display & DisplayFilterModel.Compact
+                            onTriggered: toggleDisplay(DisplayFilterModel.Compact)
+                        },
+                        Kirigami.Action {
+                            text: i18n("Display in full view")
+                            icon.name: "zoom-original-symbolic"
+                            checkable: true
+                            checked: model.display & DisplayFilterModel.Full
+                            onTriggered: toggleDisplay(DisplayFilterModel.Full)
+                        }
+                    ]
                 }
-            ]
+            }
         }
     }
 
@@ -197,7 +267,7 @@ ColumnLayout {
     }
 
     function openDialog(data, index = -1) {
-        const dialog = dialogComponent.createObject(parent, { 
+        const dialog = dialogComponent.createObject(parent, {
             index: index,
             item: data,
             title: data.name || data.entity_id || i18n('New')
@@ -216,7 +286,7 @@ ColumnLayout {
         for (let i = 0; i < items.count; i++) {
             array.push(items.get(i))
         }
-        cfg_items = JSON.stringify(array, (key, value) => value || undefined)
+        cfg_items = JSON.stringify(array, (_, value) => value || (value === 0 ? 0 : undefined))
     }
 
     function removeItem(index) {

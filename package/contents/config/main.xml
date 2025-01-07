@@ -9,14 +9,28 @@
     <entry name="url" type="string">
       <default></default>
     </entry>
-    <entry name="flat" type="bool">
-      <default>false</default>
-    </entry>
   </group>
   <group name="Items">
     <entry name="items" type="string">
       <default>[]</default>
     </entry>
     <entry name="autoBackupFile" type="string"></entry>
+    <entry name="itemDisplayDefault" type="int">
+      <default>1</default>
+    </entry>
+  </group>
+  <group name="Look">
+    <entry name="flat" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="compactEntity" type="string">
+      <default>icon</default>
+    </entry>
+    <entry name="compactScaleIconsToFit" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="compactIconSpacing" type="int">
+      <default>4</default>
+    </entry>
   </group>
 </kcfg>
