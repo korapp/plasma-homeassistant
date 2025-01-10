@@ -7,7 +7,6 @@ import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
     property string cfg_url
-    property alias cfg_flat: flat.checked
 
     signal configurationChanged
 
@@ -73,16 +72,6 @@ KCM.SimpleKCM {
             text: `<a href="${url.editText}/profile/security">${url.editText}/profile/security</a>`
             onLinkActivated: link => Qt.openUrlExternally(link)
             visible: url.editText
-        }
-
-        Item {
-            Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Look")
-        }
-
-        CheckBox {
-            id: flat
-            Kirigami.FormData.label: i18n("Flat entities")
         }
     }
     
