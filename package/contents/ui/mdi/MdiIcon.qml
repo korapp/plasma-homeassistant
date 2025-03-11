@@ -5,12 +5,18 @@ import org.kde.plasma.core 2.0 as PlasmaCore
 
 import "."
 
-PlasmaCore.IconItem {
+Item {
     property string name
-    onNameChanged: source = name ? Mdi.get(name, Qt.size(width, height)) : null
-    ColorOverlay {
-        anchors.fill: parent
-        source: parent
-        color: PlasmaCore.Theme.textColor
+    PlasmaCore.IconItem {
+        readonly property var size: Mdi.scaleIconForPlasma(name, Qt.size(parent.width, parent.height))
+        height: size.height
+        width: size.width
+        source: Mdi.get(name, size)
+        anchors.centerIn: parent
+        ColorOverlay {
+            anchors.fill: parent
+            source: parent
+            color: PlasmaCore.Theme.textColor
+        }
     }
 }
