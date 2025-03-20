@@ -8,6 +8,7 @@ Loader {
     property string name
     property string type
     property string id
+    property int colorGroup: PlasmaCore.ColorScope.colorGroup
 
     sourceComponent: {
         switch(type) {
@@ -25,6 +26,7 @@ Loader {
         id: mdi
         MdiIcon {
             name: id
+            colorGroup: parent.colorGroup
         }
     }
 
@@ -32,6 +34,7 @@ Loader {
         id: plasma
         PlasmaCore.IconItem {
             source: id
+            colorGroup: parent.colorGroup
         }
     }
 }
