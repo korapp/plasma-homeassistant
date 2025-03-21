@@ -13,15 +13,16 @@ GridLayout {
     clip: true
     columnSpacing: Kirigami.Units.smallSpacing
     rowSpacing: 0
+    anchors.margins: Kirigami.Units.smallSpacing
 
     DynamicIcon {
         name: model.icon
         Layout.rowSpan: model.value ? 2 : 1
         Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+        Layout.preferredHeight: Kirigami.Units.iconSizes.medium
     }
 
     PlasmaExtras.Heading {
-        id: stateValue
         level: 4
         text: model.value
         elide: Text.ElideRight
@@ -33,7 +34,6 @@ GridLayout {
     }
 
     PlasmaComponents3.Label {
-        id: label
         text: name
         elide: Text.ElideRight
         Layout.alignment: model.value ? Qt.AlignTop : 0

@@ -13,8 +13,6 @@ Item {
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
     Plasmoid.configurationRequired: !ClientFactory.error && (!url || !ha || !ha.token || !items.length)
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
-    Plasmoid.switchHeight: PlasmaCore.Units.iconSizes.enormous / 2
-    Plasmoid.switchWidth: PlasmaCore.Units.iconSizes.enormous
     
     readonly property string url: plasmoid.configuration.url
     readonly property string cfgItems: plasmoid.configuration.items
@@ -24,8 +22,12 @@ Item {
     property QtObject ha
     property var cancelSubscription
     property var fields: ({})
+    property bool hasFullRepresenationItems: false
 
-    onCfgItemsChanged: items = JSON.parse(cfgItems)
+    onCfgItemsChanged: {
+        items = JSON.parse(cfgItems)
+        hasFullRepresenationItems = items.some(e => e.display & DisplayFilterModel.Full)
+    }
     onUrlChanged: initClient(url)
     onItemsChanged: fetchDataAndSubscribe()
 

@@ -17,7 +17,7 @@ PlasmaExtras.Representation {
     Loader {
         id: gridLoader
         sourceComponent: gridComponent
-        active: root.initialized
+        active: root.initialized && plasmoid.expanded
         anchors.fill: parent
     }
 
@@ -35,11 +35,18 @@ PlasmaExtras.Representation {
 
                 cellWidth: dynamicCellWidth
                 cellHeight: minItemWidth / 2
-                model: itemModel
-                delegate: Entity {
+                model: DisplayFilterModel {
+                    sourceModel: itemModel
+                    filterItems: DisplayFilterModel.Full
+                }
+                delegate: EntityWrapper {
                     width: GridView.view.cellWidth - PlasmaCore.Units.smallSpacing
                     height: GridView.view.cellHeight - PlasmaCore.Units.smallSpacing
-                    contentItem: EntityDelegateTile {}
+                    flat: plasmoid.configuration.flat
+                    showBackground: true
+                    EntityDelegateTile {
+                        anchors.fill: parent
+                    }
                 }
             }
         }
