@@ -14,8 +14,6 @@ PlasmoidItem {
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
     Plasmoid.configurationRequired: !ClientFactory.error && !(url && ha?.token && items.length)
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
-    switchHeight: Kirigami.Units.iconSizes.enormous / 2
-    switchWidth: Kirigami.Units.iconSizes.enormous
     
     readonly property string url: plasmoid.configuration.url
     readonly property string cfgItems: plasmoid.configuration.items
@@ -25,8 +23,12 @@ PlasmoidItem {
     property QtObject ha
     property var cancelSubscription
     property var fields: ({})
+    property bool hasFullRepresenationItems: false
 
-    onCfgItemsChanged: items = JSON.parse(cfgItems)
+    onCfgItemsChanged: {
+        items = JSON.parse(cfgItems)
+        hasFullRepresenationItems = items.some(e => e.display & DisplayFilterModel.Full)
+    }
     onUrlChanged: initClient(url)
     onItemsChanged: fetchDataAndSubscribe()
 
