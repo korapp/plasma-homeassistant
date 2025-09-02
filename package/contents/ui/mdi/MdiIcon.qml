@@ -7,16 +7,17 @@ import "."
 
 PlasmaCore.ColorScope {
     property string name
-    PlasmaCore.IconItem {
+    PlasmaCore.SvgItem {
         readonly property var size: Mdi.scaleIconForPlasma(name, Qt.size(parent.width, parent.height))
         height: size.height
         width: size.width
-        source: Mdi.get(name, size)
+        svg: Mdi
+        elementId: name
         anchors.centerIn: parent
-        ColorOverlay {
-            anchors.fill: parent
-            source: parent
+        layer.enabled: true
+        layer.effect: ColorOverlay {
             color: PlasmaCore.ColorScope.textColor
+            cached: true
         }
     }
 }

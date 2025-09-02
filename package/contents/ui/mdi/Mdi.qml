@@ -18,12 +18,6 @@ PlasmaCore.Svg {
         return scaleSize(elementSize(name), Qt.size(size.width - margin, size.height - margin))
     }
 
-    function get(name, size) {
-        if (!(name && size.width && size.height)) return
-        const elSize = scaleSize(elementSize(name), size)
-        return image(elSize, name)
-    }
-
     function getPlasmaMargin(s) {
         if (s >= 96) return 9
         if (s >= 64) return 6
