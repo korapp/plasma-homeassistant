@@ -13,6 +13,8 @@ Item {
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
     Plasmoid.configurationRequired: !ClientFactory.error && (!url || !ha || !ha.token || !items.length)
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
+    Plasmoid.toolTipMainText: ""
+    Plasmoid.toolTipSubText: ""
     
     readonly property string url: plasmoid.configuration.url
     readonly property string cfgItems: plasmoid.configuration.items
