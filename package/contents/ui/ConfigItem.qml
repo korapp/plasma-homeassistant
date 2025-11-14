@@ -40,11 +40,21 @@ Kirigami.FormLayout {
         }
     }
 
-    TextField {
-        text: item.name || ''
-        placeholderText: source.attributes?.friendly_name || ''
-        onTextChanged: item.name = text
-        Kirigami.FormData.label: i18n("Name")
+    Row {
+        Kirigami.FormData.label: i18n("Display name") 
+        CheckBox {
+            id: displayName
+            anchors.verticalCenter: parent.verticalCenter
+            checked: !!item.show_name
+            onCheckedChanged: item.show_name = checked
+        }
+        TextField {
+            text: item.name || ''
+            placeholderText: source.attributes?.friendly_name || ''
+            onTextChanged: item.name = text
+            enabled: displayName.checked
+            Kirigami.FormData.label: i18n("Name")
+        }
     }
 
     Row {

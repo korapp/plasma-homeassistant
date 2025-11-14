@@ -86,7 +86,7 @@ KCM.ScrollViewKCM {
             File {
                 id: file
                 defaultSuffix: "hapi"
-                nameFilters: ["Home Aassistant Plasma Items (*.hapi)"]
+                nameFilters: ["Home Assistant Plasma Items (*.hapi)"]
             }
         }
     }
@@ -204,7 +204,7 @@ KCM.ScrollViewKCM {
         for (let i = 0; i < items.count; i++) {
             array.push(items.get(i))
         }
-        cfg_items = JSON.stringify(array, (key, value) => value || undefined)
+        cfg_items = JSON.stringify(array, (key, value) => typeof value === 'boolean' ? value : (value || undefined))
     }
 
     function removeItem(index) {

@@ -6,10 +6,11 @@ function getDisplayValue({ state, attribute, attributes, unit }) {
     return ''
 }
 
-export function Entity({ entity_id = '', name, icon, state, attribute = '', attributes, unit, default_action = {}, scroll_action = {} } = {}, data = {}) {
+export function Entity({ entity_id = '', show_name, name, icon, state, attribute = '', attributes, unit, default_action = {}, scroll_action = {} } = {}, data = {}) {
     this.entity_id = entity_id
     this.attributes = Object.assign({}, attributes, data.a)
     this.state = data.s || state || ''
+    this.show_name = show_name
     this.name = name || this.attributes.friendly_name || ''
     this.icon = icon || this.attributes.icon || ''
     this.unit = unit || this.attributes.unit_of_measurement || ''
@@ -21,7 +22,7 @@ export function Entity({ entity_id = '', name, icon, state, attribute = '', attr
     this.value = getDisplayValue(this)
 }
 
-export function ConfigEntity({ entity_id = '', name, icon, attribute, default_action, scroll_action, notify } = {}) {
+export function ConfigEntity({ entity_id = '', show_name = true, name, icon, attribute, default_action, scroll_action, notify } = {}) {
     Object.defineProperties(this, {
         entity_id: {
             enumerable: true,
@@ -43,6 +44,7 @@ export function ConfigEntity({ entity_id = '', name, icon, attribute, default_ac
     addActionProperty(this, 'scroll_action')
 
     this.entity_id = entity_id
+    this.show_name = show_name
     this.name = name
     this.icon = icon
     this.attribute = attribute

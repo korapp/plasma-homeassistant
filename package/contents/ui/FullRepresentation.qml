@@ -11,10 +11,12 @@ import org.kde.kirigami as Kirigami
 import "components"
 
 PlasmaExtras.Representation {
-    readonly property var appletInterface: plasmoid.self
 
-    Layout.preferredWidth: Kirigami.Units.gridUnit * 24
-    Layout.preferredHeight: Kirigami.Units.gridUnit * 24
+    readonly property var preferredWidgetWidth: plasmoid.configuration.widgetWidth
+    readonly property var preferredWidgetHeight: plasmoid.configuration.widgetHeight
+
+    Layout.preferredWidth: preferredWidgetWidth < 0 ? Kirigami.Units.gridUnit * 24 : preferredWidgetWidth
+    Layout.preferredHeight: preferredWidgetHeight < 0 ? Kirigami.Units.gridUnit * 24 : preferredWidgetHeight
 
     Loader {
         id: gridLoader
@@ -29,16 +31,14 @@ PlasmaExtras.Representation {
             GridView {
                 interactive: false
                 clip: true
-                readonly property int dynamicColumnNumber: Math.min(Math.max(width / minItemWidth, 1), count)
-                readonly property int dynamicCellWidth: Math.max(width / dynamicColumnNumber, minItemWidth)
-                readonly property int minItemWidth: Kirigami.Units.iconSizes.enormous
-
-                cellWidth: dynamicCellWidth
-                cellHeight: minItemWidth / 2
+                cellWidth: plasmoid.configuration.cellWidth
+                cellHeight: plasmoid.configuration.cellHeight
                 model: itemModel
                 delegate: Entity {
-                    width: GridView.view.cellWidth - Kirigami.Units.smallSpacing
-                    height: GridView.view.cellHeight - Kirigami.Units.smallSpacing
+                    readonly property var gridHorizontalSpacing: plasmoid.configuration.gridHorizontalSpacing
+                    readonly property var gridVerticalSpacing: plasmoid.configuration.gridVerticalSpacing
+                    width: plasmoid.configuration.cellWidth - (gridHorizontalSpacing < 0 ? Kirigami.Units.smallSpacing : gridHorizontalSpacing)
+                    height: plasmoid.configuration.cellHeight - (gridVerticalSpacing < 0 ? Kirigami.Units.smallSpacing : gridVerticalSpacing)
                     contentItem: EntityDelegateTile {}
                 }
             }

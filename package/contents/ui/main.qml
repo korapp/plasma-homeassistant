@@ -3,20 +3,24 @@ import QtQuick
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
-
 import "."
 import "../code/model.mjs" as Model
 
 PlasmoidItem {
     id: root
-    compactRepresentation: CompactRepresentation {}
-    fullRepresentation: FullRepresentation {}
+
+    compactRepresentation: plasmoid.configuration.compact 
+        ? Qt.createComponent("CompactRepresentation.qml")
+        : Qt.createComponent("FullRepresentation.qml")
+
+    fullRepresentation: plasmoid.configuration.compact 
+        ? Qt.createComponent("CompactRepresentation.qml")
+        : Qt.createComponent("FullRepresentation.qml")
+
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
     Plasmoid.configurationRequired: !ClientFactory.error && !(url && ha?.token && items.length)
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !initialized
-    switchHeight: Kirigami.Units.iconSizes.enormous / 2
-    switchWidth: Kirigami.Units.iconSizes.enormous
-    
+
     readonly property string url: plasmoid.configuration.url
     readonly property string cfgItems: plasmoid.configuration.items
     property ListModel itemModel: ListModel {}
