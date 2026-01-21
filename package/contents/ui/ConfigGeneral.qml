@@ -68,9 +68,8 @@ KCM.SimpleKCM {
             text: i18n("Get token from your profile page")
         }
 
-        Label {
-            text: `<a href="${url.editText}/profile/security">${url.editText}/profile/security</a>`
-            onLinkActivated: link => Qt.openUrlExternally(link)
+        Kirigami.UrlButton {
+            url: url.editText + "/profile/security"
             visible: url.editText
         }
     }
