@@ -12,9 +12,16 @@ KSvg.Svg {
         return Qt.size(s1.width * scale, s1.height * scale)
     }
 
-    function get(name, size) {
-        if (!size.width || !size.height) return
-        const elSize = scaleSize(elementSize(name), size)
-        return image(elSize, name)
+    function scaleIconForPlasma(name, size) {
+        const margin = getPlasmaMargin(size.height) * 2
+        return scaleSize(elementSize(name), Qt.size(size.width - margin, size.height - margin))
+    }
+
+    function getPlasmaMargin(s) {
+        if (s >= 96) return 9
+        if (s >= 64) return 6
+        if (s >= 48) return 4
+        if (s >= 22) return 3
+        return 2
     }
 }

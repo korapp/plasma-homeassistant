@@ -18,6 +18,7 @@ GridLayout {
         name: model.icon
         Layout.rowSpan: model.value ? 2 : 1
         Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+        Layout.preferredHeight: Kirigami.Units.iconSizes.medium
     }
 
     PlasmaExtras.Heading {
