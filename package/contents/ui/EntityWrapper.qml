@@ -2,20 +2,66 @@ import QtQuick 2.15
 import QtQuick.Controls 2.0
 
 import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents3
-import org.kde.kirigami 2.4 as Kirigami
 
-PlasmaComponents3.Button {
+MouseArea {
     id: control
-    down: model.active
-    flat: plasmoid.configuration.flat
-    enabled: !!actions.length
     clip: true
+    enabled: !!actions.length
+    hoverEnabled: true
+    property bool flat: true
+    property bool showScrollPositionBackground: true
+    property bool showBackground: false
+    property alias tooltipTitle: tooltip.mainText
     readonly property var actions: getActiveActions()
+    property alias content: socket.contentItem
+    property alias background: socket.background
+    
+    PlasmaCore.ColorScope.inherit: flat
+    PlasmaCore.ColorScope.colorGroup: flat && parent ? parent.PlasmaCore.ColorScope.colorGroup : PlasmaCore.Theme.ButtonColorGroup
 
-    PlasmaComponents3.ToolTip {
-        visible: control.hovered && text
-        text: actions.map(c => c.item.tip).join("\n")
+    Control {
+        id: socket
+        padding: PlasmaCore.Units.smallSpacing
+        anchors.fill: control
+        Binding on background {
+            when: showBackground
+            value: Item {
+                height: control.height
+                width: control.width
+
+                PlasmaCore.FrameSvgItem {
+                    anchors.fill: parent
+                    imagePath: "widgets/button"
+                    prefix: ["toolbutton-normal", "normal"]
+                    visible: !flat
+                }
+                
+                PlasmaCore.FrameSvgItem {
+                    id: surfacePressed
+                    anchors.fill: parent
+                    imagePath: "widgets/button"
+                    prefix: ["toolbutton-pressed", "pressed"]
+                    opacity: model.active ? 0.5 : 0
+                    Behavior on opacity {
+                        enabled: PlasmaCore.Units.shortDuration > 0
+                        NumberAnimation { duration: PlasmaCore.Units.shortDuration; easing.type: Easing.OutQuad }
+                    }
+                }
+
+                PlasmaCore.FrameSvgItem {
+                    anchors.fill: parent
+                    imagePath: "widgets/button"
+                    prefix: ["toolbutton-hover", "normal"]
+                    visible: control.hoverEnabled && control.containsMouse
+                }
+            }
+        }
+    }
+
+    PlasmaCore.ToolTipArea {
+        id: tooltip
+        anchors.fill: parent
+        subText: actions.map(c => c.item.tip).join("\n")
     }
 
     function format(underscoredText) {
@@ -46,7 +92,7 @@ PlasmaComponents3.Button {
         Loader {
             active: model.active && !!scroll_action.service
             anchors.fill: parent
-            parent: control
+            parent: socket.background || socket
             sourceComponent: Component {
                 Item {
                     readonly property string tip: `Scroll to adjust ${format(scroll_action.data_field)}`
@@ -55,7 +101,7 @@ PlasmaComponents3.Button {
                     readonly property var min: scrollAttributeField && scrollAttributeField.number.min || 0
                     property real position: (attributes[scroll_action.data_field] - min) / (max - min)
                     
-                    WheelHandler {               
+                    WheelHandler {            
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         orientation: Qt.Vertical
                         onWheel: e => {
@@ -65,6 +111,7 @@ PlasmaComponents3.Button {
                         onActiveChanged: !active && ha.callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
                     }
                     Rectangle {
+                        visible: control.showScrollPositionBackground
                         radius: 3
                         x: 1
                         y: 1

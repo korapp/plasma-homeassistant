@@ -57,6 +57,8 @@ Kirigami.FormLayout {
         }
         DynamicIcon {
             name: iconName.text || iconName.placeholderText
+            height: iconName.height
+            width: height
         }
     }
 
