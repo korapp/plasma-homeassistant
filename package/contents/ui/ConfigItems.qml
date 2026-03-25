@@ -12,17 +12,55 @@ import "."
 KCM.ScrollViewKCM {
     property string cfg_items
     property alias cfg_autoBackupFile: autoBackupFileField.text
+    property int cfg_itemDisplayDefault
     property ListModel items: ListModel { dynamicRoles: true }
     property var services: ({})
     property var entities: ({})
     property bool busy: true
     property Client ha
 
-    header: Kirigami.InlineMessage {
-        Layout.fillWidth: true
-        text: ha?.errorString
-        visible: !!text
-        type: Kirigami.MessageType.Error
+    header: ColumnLayout {
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            text: ha?.errorString
+            visible: !!text
+            type: Kirigami.MessageType.Error
+        }
+
+        RowLayout {
+            Layout.maximumWidth: itemList.width - Kirigami.Units.largeSpacing * 2
+            Label {
+                text: i18n("Global display mode")
+                Layout.fillWidth: true
+            }
+            ConfigItemActionBar {
+                actions: [
+                    Kirigami.Action {
+                        text: i18n("Display in compact view")
+                        icon.name: "window-minimize-pip"
+                        checkable: true
+                        checked: cfg_itemDisplayDefault & DisplayFilterModel.Compact
+                        onTriggered: setDisplayDefaultAndItems(DisplayFilterModel.Compact, checked)
+                    },
+                    Kirigami.Action {
+                        text: i18n("Display in full view")
+                        icon.name: "window-restore-pip"
+                        checkable: true
+                        checked: cfg_itemDisplayDefault & DisplayFilterModel.Full
+                        onTriggered: setDisplayDefaultAndItems(DisplayFilterModel.Full, checked)
+                    }
+                ]
+            }
+        }
+    }
+
+    function setDisplayDefaultAndItems(flag, set) {
+        cfg_itemDisplayDefault ^= flag
+        for (let i = 0; i < items.count; i++) {
+            const display = items.get(i).display
+            items.setProperty(i, "display", set ? (display | flag) : (display & ~flag))
+        }
+        save()
     }
 
     footer: ColumnLayout {
@@ -86,7 +124,7 @@ KCM.ScrollViewKCM {
             File {
                 id: file
                 defaultSuffix: "hapi"
-                nameFilters: ["Home Aassistant Plasma Items (*.hapi)"]
+                nameFilters: ["Home Assistant Plasma Items (*.hapi)"]
             }
         }
     }
@@ -112,7 +150,8 @@ KCM.ScrollViewKCM {
     }
 
     function setItems(data) {
-        items.append(JSON.parse(data))
+        const rawItems = JSON.parse(data) || []
+        rawItems.forEach(item => items.append(new Model.ConfigEntity(item)))
     }
 
     function fetchData() {
@@ -133,6 +172,9 @@ KCM.ScrollViewKCM {
             down: false
             width: parent.width
             readonly property var entity: entities[model.entity_id]
+            function toggleDisplay(flag) {
+                updateItem({ display: model.display ^ flag }, index)
+            }
             contentItem: RowLayout {
                 Kirigami.ListItemDragHandle {
                     listItem: listItem
@@ -150,13 +192,35 @@ KCM.ScrollViewKCM {
                     subtitle: model.entity_id
                     Layout.fillWidth: true
                 }
-                ToolButton {
-                    icon.name: 'edit-entry'
-                    onClicked: openDialog(new Model.ConfigEntity(model), index)
-                }
-                ToolButton {
-                    icon.name: 'delete'
-                    onClicked: removeItem(index)
+                ConfigItemActionBar {
+                    actions: [
+                        Kirigami.Action {
+                            icon.name: 'edit-entry'
+                            onTriggered: openDialog(new Model.ConfigEntity(model), index)
+                            text: i18n("Edit")
+                            visible: listItem.hovered
+                        },
+                        Kirigami.Action {
+                            icon.name: 'delete'
+                            onTriggered: removeItem(index)
+                            text: i18n("Delete")
+                            visible: listItem.hovered
+                        },
+                        Kirigami.Action {
+                            text: i18n("Display in compact view")
+                            icon.name: "window-minimize-pip"
+                            checkable: true
+                            checked: model.display & DisplayFilterModel.Compact
+                            onTriggered: listItem.toggleDisplay(DisplayFilterModel.Compact)
+                        },
+                        Kirigami.Action {
+                            text: i18n("Display in full view")
+                            icon.name: "window-restore-pip"
+                            checkable: true
+                            checked: model.display & DisplayFilterModel.Full
+                            onTriggered: listItem.toggleDisplay(DisplayFilterModel.Full)
+                        }
+                    ]
                 }
             }
         }
@@ -204,7 +268,7 @@ KCM.ScrollViewKCM {
         for (let i = 0; i < items.count; i++) {
             array.push(items.get(i))
         }
-        cfg_items = JSON.stringify(array, (key, value) => value || undefined)
+        cfg_items = JSON.stringify(array, (_, value) => value || (value === 0 ? 0 : undefined))
     }
 
     function removeItem(index) {

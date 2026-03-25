@@ -6,7 +6,7 @@ function getDisplayValue({ state, attribute, attributes, unit }) {
     return ''
 }
 
-export function Entity({ entity_id = '', name, icon, state, attribute = '', attributes, unit, default_action = {}, scroll_action = {} } = {}, data = {}) {
+export function Entity({ entity_id = '', name, icon, state, attribute = '', attributes, unit, display = 1, default_action = {}, scroll_action = {} } = {}, data = {}) {
     this.entity_id = entity_id
     this.attributes = Object.assign({}, attributes, data.a)
     this.state = data.s || state || ''
@@ -16,12 +16,13 @@ export function Entity({ entity_id = '', name, icon, state, attribute = '', attr
     this.attribute = attribute
     this.default_action = default_action
     this.scroll_action = scroll_action
+    this.display = display
     this.active = activeStates.includes(this.state)
     this.domain = entity_id.substring(0, entity_id.indexOf('.'))
     this.value = getDisplayValue(this)
 }
 
-export function ConfigEntity({ entity_id = '', name, icon, attribute, default_action, scroll_action, notify } = {}) {
+export function ConfigEntity({ entity_id = '', name, icon, attribute, display = 1, default_action, scroll_action, notify } = {}) {
     Object.defineProperties(this, {
         entity_id: {
             enumerable: true,
@@ -46,6 +47,7 @@ export function ConfigEntity({ entity_id = '', name, icon, attribute, default_ac
     this.name = name
     this.icon = icon
     this.attribute = attribute
+    this.display = display
     this.default_action = default_action
     this.scroll_action = scroll_action
     this.notify = notify

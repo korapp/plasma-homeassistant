@@ -11,12 +11,10 @@ import org.kde.kirigami as Kirigami
 import "components"
 
 PlasmaExtras.Representation {
-    readonly property var appletInterface: plasmoid.self
-
     Loader {
         id: gridLoader
         sourceComponent: gridComponent
-        active: root.initialized
+        active: root.initialized && root.expanded
         anchors.fill: parent
     }
 
@@ -32,11 +30,18 @@ PlasmaExtras.Representation {
 
                 cellWidth: dynamicCellWidth
                 cellHeight: minItemWidth / 2
-                model: itemModel
-                delegate: Entity {
+                model: DisplayFilterModel {
+                    sourceModel: itemModel
+                    filterItems: DisplayFilterModel.Full
+                }
+                delegate: EntityWrapper {
                     width: GridView.view.cellWidth - Kirigami.Units.smallSpacing
                     height: GridView.view.cellHeight - Kirigami.Units.smallSpacing
-                    contentItem: EntityDelegateTile {}
+                    flat: plasmoid.configuration.flat
+                    showBackground: true
+                    EntityDelegateTile {
+                        anchors.fill: parent
+                    }
                 }
             }
         }
