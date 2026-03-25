@@ -17,7 +17,7 @@ Add Home Assistant to your plasma desktop.
 ## Use
 
 1. Enter the URL of the Home Assistant instance
-2. Create Long Lived Access Token on your Home Assistant Profile page (https://<your_ha_address>/profile) and put it in the plasmoid configuration
+2. Create Long Lived Access Token on your Home Assistant Profile page (https://<your_ha_address>/profile/security) and put it in the plasmoid configuration
 3. Add entities
 
 ## Requirements
