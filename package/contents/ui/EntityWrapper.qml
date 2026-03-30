@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 
 import org.kde.plasma.core as PlasmaCore
-import org.kde.plasma.components as PlasmaComponents3
 import org.kde.kirigami as Kirigami
 import org.kde.ksvg as KSvg
 
@@ -98,7 +97,7 @@ MouseArea {
             sourceComponent: Component {
                 Item {
                     readonly property string tip: `Scroll to adjust ${format(scroll_action.data_field)}`
-                    readonly property var scrollAttributeField: fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
+                    readonly property var scrollAttributeField: store.fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
                     readonly property var max: scrollAttributeField?.number.max || 1
                     readonly property var min: scrollAttributeField?.number.min || 0
                     property real position: (attributes[scroll_action.data_field] - min) / (max - min)
