@@ -17,7 +17,7 @@ jobs:
       changelog: ${{ steps.tag_version.outputs.changelog }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Bump version and push tag
         id: tag_version
@@ -36,7 +36,7 @@ jobs:
     if: ${{ needs.bump.outputs.new_tag != null }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
 
