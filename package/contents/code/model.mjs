@@ -1,12 +1,16 @@
-const activeStates = ['on', 'open', 'idle'];
+import { formatIfNumber } from "./formatter.mjs"
 
-function getDisplayValue({ state, attribute, attributes, unit }) {
-    if (attribute && attributes[attribute]) return attributes[attribute].toString()
-    if (state && state !== 'unknown') return state + (unit === '%' ? unit : ' ' + unit)
-    return ''
+const activeStates = ['on', 'open', 'idle']
+const noValueStates = ['unknown', 'unavailable']
+
+function getDisplayValue({ state, attribute, attributes, unit, value_number_precision }) {
+    if (attribute && attributes[attribute]) return attributes[attribute] + ''
+    if (!state) return ''
+    if (unit && !noValueStates.includes(state)) return formatIfNumber(state, value_number_precision) + (unit === '%' ? unit : ' ' + unit)
+    return state
 }
 
-export function Entity({ entity_id = '', name, icon, state, attribute = '', attributes, unit, display = 1, default_action = {}, scroll_action = {} } = {}, data = {}) {
+export function Entity({ entity_id = '', name, icon, state, attribute = '', attributes, unit, display = 1, value_number_precision, default_action = {}, scroll_action = {} } = {}, data = {}) {
     this.entity_id = entity_id
     this.attributes = Object.assign({}, attributes, data.a)
     this.state = data.s || state || ''
@@ -17,12 +21,13 @@ export function Entity({ entity_id = '', name, icon, state, attribute = '', attr
     this.default_action = default_action
     this.scroll_action = scroll_action
     this.display = display
+    this.value_number_precision = value_number_precision
     this.active = activeStates.includes(this.state)
     this.domain = entity_id.substring(0, entity_id.indexOf('.'))
     this.value = getDisplayValue(this)
 }
 
-export function ConfigEntity({ entity_id = '', name, icon, attribute, display = 1, default_action, scroll_action, notify } = {}) {
+export function ConfigEntity({ entity_id = '', name, icon, attribute, display = 1, value_number_precision, default_action, scroll_action, notify } = {}) {
     Object.defineProperties(this, {
         entity_id: {
             enumerable: true,
@@ -51,6 +56,7 @@ export function ConfigEntity({ entity_id = '', name, icon, attribute, display = 
     this.default_action = default_action
     this.scroll_action = scroll_action
     this.notify = notify
+    this.value_number_precision = value_number_precision
 }
 
 function addActionProperty(o, name) {
