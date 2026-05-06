@@ -17,7 +17,7 @@ jobs:
       changelog: ${{ steps.tag_version.outputs.changelog }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Bump version and push tag
         id: tag_version
@@ -36,7 +36,7 @@ jobs:
     if: ${{ needs.bump.outputs.new_tag != null }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -55,7 +55,7 @@ jobs:
       - name: Package
         run: |
           cd $ASSET_DIR
-          zip -r ../$ASSET_BASE_NAME-$RELEASE_VERSION.plasmoid * -x "*.git*"
+          zip -r ../$ASSET_BASE_NAME-$RELEASE_VERSION.plasmoid * -x "*.git*" -x "**/tst_*"
           cd ..
 
       - uses: ncipollo/release-action@v1

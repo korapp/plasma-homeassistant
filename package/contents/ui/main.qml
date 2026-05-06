@@ -86,13 +86,14 @@ PlasmoidItem {
     function updateState(state) {
         for(let id in state) {
             const itemIdx = items.findIndex(i => i.entity_id === id)
+            const config = items[itemIdx]
             const change = state[id]['+']
             const item = itemModel.get(itemIdx)
-            const newItem = new Model.Entity(item, change)
+            const newItem = new Model.EntityUpdate(config, change, item)
             const oldValue = item.value
             itemModel.set(itemIdx, newItem)
-            if (items[itemIdx].notify && oldValue !== newItem.value) {
-                notifications.createNotification(newItem.name + " " + newItem.value)
+            if (config.notify && oldValue !== newItem.value) {
+                notifications.createNotification(item.name + " " + newItem.value)
             }
         }
     }
