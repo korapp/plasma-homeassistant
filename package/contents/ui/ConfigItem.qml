@@ -4,6 +4,7 @@ import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 
 import "components"
+import "../code/formatter.mjs" as Formatter
 
 Kirigami.FormLayout {
     property var item
@@ -19,6 +20,26 @@ Kirigami.FormLayout {
         }
         Autocompletion {
             model: Object.keys(entities).sort()
+        }
+    }
+
+    ComboBox {
+        readonly property int steps: 7
+        Kirigami.FormData.label: i18n("Precision") 
+        visible: !isNaN(+source.state) && !useAttribute.checked
+        model: [{
+            text: i18n("%1 (raw)", source.state),
+            value: undefined
+        }, ...Array.from({ length: steps }, (_, i) => ({
+            text: Formatter.formatIfNumber(source.state, i),
+            value: i
+        }))]
+        textRole: "text"
+        valueRole: "value"
+        onActivated: item.value_number_precision = currentValue
+        Component.onCompleted: {
+            currentIndex = indexOfValue(item.value_number_precision)
+            parent.onSourceChanged.connect(() => visible && (currentIndex = indexOfValue(Formatter.getDefaultPrecision(source.state))))
         }
     }
 
