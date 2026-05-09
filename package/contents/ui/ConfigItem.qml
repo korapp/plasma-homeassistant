@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 
 import "components"
 import "../code/formatter.mjs" as Formatter
+import "../code/attributesBlacklist.mjs" as Ab
 
 Kirigami.FormLayout {
     property var item
@@ -25,7 +26,7 @@ Kirigami.FormLayout {
 
     ComboBox {
         readonly property int steps: 7
-        Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision") 
+        Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision")
         visible: !isNaN(+source.state) && !useAttribute.checked
         model: [{
             text: i18nc("@item:inlistbox number format", "%1 (raw)", source.state),
@@ -44,15 +45,17 @@ Kirigami.FormLayout {
     }
 
     Row {
-        Kirigami.FormData.label: i18nc("@label", "Display attribute") 
+        Kirigami.FormData.label: i18nc("@label", "Display attribute")
+        visible: attributeSelector.model?.length > 0
         CheckBox {
             id: useAttribute
             anchors.verticalCenter: parent.verticalCenter
             checked: !!item.attribute
         }
         ComboBox {
+            id: attributeSelector
             displayText: currentText || item.attribute
-            model: source.attributes ? Object.keys(source.attributes) : []
+            model: source.attributes ? Ab.filter(Object.keys(source.attributes)).sort() : []
             onActivated: index => item.attribute = model[index]
             onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
             enabled: useAttribute.checked
