@@ -6,6 +6,7 @@ import "../code/formatter.mjs" as Formatter
 
 BaseObject {
     property var items: []
+    property string language
     readonly property alias initialized: _.initialized
     readonly property ListModel itemModel: ListModel {}
     readonly property alias fields: _.fields
@@ -49,6 +50,7 @@ BaseObject {
         id: _
         property bool initialized: false
         property var fields: ({})
+        property var translations
         property bool hasFullRepresenationItems: false
         property Client client
         property var cancelSubscription
@@ -58,18 +60,44 @@ BaseObject {
             'unavailable': i18nc('Entity state', 'unavailable')
         })
 
+        function filterRelevantTranslations(r) {
+            const result = {};
+            for (const k in r) {
+                if (k.includes(".state.")) result[k] = r[k];
+            }
+            return result
+        }
+
+        function getTranslationKey(state, domain = "_", device_class = "_") {
+            return `component.${domain}.entity_component.${device_class}.state.${state}`
+        }
+
+        function loadTranslations() {
+            if (language === 'en') return Promise.resolve()
+            return client.getTranslations(language, "entity_component", getUsedDomains()).then(({ resources }) => {
+                translations = filterRelevantTranslations(resources)
+            })
+        }
+
         function getDisplayValue({ attributes, state }, config = {}) {
             const { attribute, domain, value_number_precision } = config
             if (attribute && attributes[attribute]) return attributes[attribute] + ''
             if (!state) return ''
             const unit = attributes.unit_of_measurement
             if (unit && !(state in noValueStates)) return Formatter.formatIfNumber(state, value_number_precision) + (unit === '%' ? unit : ' ' + unit)
+            if (!translations) return state
+            return translations[getTranslationKey(state, domain, attributes.device_class)]
+                || translations[getTranslationKey(state, domain)]
+                || noValueStates[state]
+                || state
         }
 
         function subscribe() { 
             unsubscribe()
             if (!items.length) return
-            cancelSubscription = client.subscribeEntities(getUsedEntityIds(), processState)
+            loadTranslations().then(() => {
+                cancelSubscription = client.subscribeEntities(getUsedEntityIds(), processState)
+            })
         }
 
         function unsubscribe() {

@@ -31,6 +31,7 @@ PlasmoidItem {
     Store {
         id: store
         items: JSON.parse(plasmoid.configuration.items)
+        language: Qt.locale().name.substring(0,2)
     }
 
     Notifications {

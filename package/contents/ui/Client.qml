@@ -10,6 +10,7 @@ BaseObject {
     property var callService: ws.callService
     property var getServices: ws.getServices
     property var getStates: ws.getStates
+    property var getTranslations: ws.getTranslations
     property string errorString: ""
     readonly property alias ready: ws.ready
     readonly property bool configured: ws.url && token
@@ -123,6 +124,15 @@ BaseObject {
 
         function getServices() {
             return commandAsync({"type": "get_services"})
+        }
+
+        function getTranslations(language, category, integration) {
+            return commandAsync({
+                "type": "frontend/get_translations",
+                category,
+                language,
+                integration
+            })
         }
 
         function ping() {
