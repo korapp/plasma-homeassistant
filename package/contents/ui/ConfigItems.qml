@@ -30,20 +30,20 @@ KCM.ScrollViewKCM {
         RowLayout {
             Layout.maximumWidth: itemList.width - Kirigami.Units.largeSpacing * 2
             Label {
-                text: i18n("Global display mode")
+                text: i18nc("@label", "Global display mode")
                 Layout.fillWidth: true
             }
             ConfigItemActionBar {
                 actions: [
                     Kirigami.Action {
-                        text: i18n("Display in compact view")
+                        text: i18nc("@action", "Display in compact view")
                         icon.name: "window-minimize-pip"
                         checkable: true
                         checked: cfg_itemDisplayDefault & DisplayFilterModel.Compact
                         onTriggered: setDisplayDefaultAndItems(DisplayFilterModel.Compact, checked)
                     },
                     Kirigami.Action {
-                        text: i18n("Display in full view")
+                        text: i18nc("@action", "Display in full view")
                         icon.name: "window-restore-pip"
                         checkable: true
                         checked: cfg_itemDisplayDefault & DisplayFilterModel.Full
@@ -68,7 +68,7 @@ KCM.ScrollViewKCM {
             enabled: !busy
             Button {
                 icon.name: 'list-add'
-                text: i18n("Add")
+                text: i18nc("@action:button New entity", "Add")
                 onClicked: openDialog(new Model.ConfigEntity())
                 Layout.fillWidth: true
             }
@@ -86,7 +86,7 @@ KCM.ScrollViewKCM {
             RowLayout {
                 Button {
                     icon.name: 'document-import'
-                    text: i18n("Import")
+                    text: i18nc("@action:button", "Import")
                     onClicked: file.open().then(data => {
                         setItems(data)
                         save()
@@ -95,7 +95,7 @@ KCM.ScrollViewKCM {
                 }
                 Button {
                     icon.name: 'document-export'
-                    text: i18n("Export")
+                    text: i18nc("@action:button", "Export")
                     onClicked: file.save(cfg_items)
                     enabled: !!items.count
                     Layout.fillWidth: true
@@ -104,7 +104,7 @@ KCM.ScrollViewKCM {
 
             RowLayout {
                 Label {
-                    text: i18n("Auto backup")
+                    text: i18nc("@label:textbox", "Auto backup")
                 }
                 Kirigami.ActionTextField {
                     id: autoBackupFileField
@@ -197,24 +197,24 @@ KCM.ScrollViewKCM {
                         Kirigami.Action {
                             icon.name: 'edit-entry'
                             onTriggered: openDialog(new Model.ConfigEntity(model), index)
-                            text: i18n("Edit")
+                            text: i18nc("@action", "Edit")
                             visible: listItem.hovered
                         },
                         Kirigami.Action {
                             icon.name: 'delete'
                             onTriggered: removeItem(index)
-                            text: i18n("Delete")
+                            text: i18nc("@action", "Delete")
                             visible: listItem.hovered
                         },
                         Kirigami.Action {
-                            text: i18n("Display in compact view")
+                            text: i18nc("@action", "Display in compact view")
                             icon.name: "window-minimize-pip"
                             checkable: true
                             checked: model.display & DisplayFilterModel.Compact
                             onTriggered: listItem.toggleDisplay(DisplayFilterModel.Compact)
                         },
                         Kirigami.Action {
-                            text: i18n("Display in full view")
+                            text: i18nc("@action", "Display in full view")
                             icon.name: "window-restore-pip"
                             checkable: true
                             checked: model.display & DisplayFilterModel.Full
@@ -251,7 +251,7 @@ KCM.ScrollViewKCM {
         const dialog = dialogComponent.createObject(parent, { 
             index: index,
             item: data,
-            title: data.name || data.entity_id || i18n('New')
+            title: data.name || data.entity_id || i18nc("@title", 'New')
         })
         dialog.open()
         dialog.onItemAccepted.connect((index, item) => {

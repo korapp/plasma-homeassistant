@@ -15,22 +15,22 @@ KCM.SimpleKCM {
     Kirigami.FormLayout {
         Item {
             Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Compact")
+            Kirigami.FormData.label: i18nc("@title:group", "Compact")
         }
 
         CheckBox {
             id: compactScaleIconsToFit
-            Kirigami.FormData.label: i18n("Scale icons to fit")
+            Kirigami.FormData.label: i18nc("@label", "Scale icons to fit")
         }
 
         ComboBox {
             model: [
-                {value: "icon", label: i18n("Icon")},
-                {value: "icon-and-text", label: i18n("Icon and text")}
+                {value: "icon", label: i18nc("@item:inlistbox", "Icon")},
+                {value: "icon-and-text", label: i18nc("@item:inlistbox", "Icon and text")}
             ]
             textRole: "label"
             valueRole: "value"
-            Kirigami.FormData.label: i18n("Entity widget")
+            Kirigami.FormData.label: i18nc("@label:listbox", "Entity widget")
             Component.onCompleted: (currentIndex = indexOfValue(cfg_compactEntity))
             onActivated: (cfg_compactEntity = currentValue)
         }
@@ -44,19 +44,19 @@ KCM.SimpleKCM {
             ]
             textRole: "name"
             valueRole: "value"
-            Kirigami.FormData.label: i18n("Icon spacing")
+            Kirigami.FormData.label: i18ndc("plasma_applet_org.kde.plasma.systemtray", "@label:listbox The spacing between system tray icons in the Panel", "Spacing:")
             Component.onCompleted: (currentIndex = indexOfValue(cfg_compactIconSpacing))
             onActivated: (cfg_compactIconSpacing = currentValue)
         }
 
         Item {
             Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Full")
+            Kirigami.FormData.label: i18nc("@title:group", "Full")
         }
 
         CheckBox {
             id: flat
-            Kirigami.FormData.label: i18n("Flat entities")
+            Kirigami.FormData.label: i18nc("@label", "Flat entities")
         }
     }
 }

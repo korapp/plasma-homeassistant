@@ -31,7 +31,7 @@ KCM.SimpleKCM {
 
         Item {
             Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("API")
+            Kirigami.FormData.label: i18nc("@title:group", "API")
         }
 
         ComboBox {
@@ -45,7 +45,7 @@ KCM.SimpleKCM {
                 secrets.restore(editText)
                 setValue(editText)
             }
-            Kirigami.FormData.label: i18n("Home Assistant URL")
+            Kirigami.FormData.label: i18nc("@label:listbox", "Home Assistant URL")
             Layout.fillWidth: true
 
             function setValue(value) {
@@ -54,18 +54,18 @@ KCM.SimpleKCM {
         }
 
         Label {
-            text: i18n("Make sure the URL includes the protocol and port. For example:\nhttp://homeassistant.local:8123\nhttps://example.duckdns.org")
+            text: i18nc("@info", "Make sure the URL includes the protocol and port. For example: %1", "\nhttp://homeassistant.local:8123\nhttps://example.duckdns.org")
         }
 
         TextField {
             id: token
             text: secrets.token
             onTextEdited: configurationChanged()
-            Kirigami.FormData.label: i18n("Token")
+            Kirigami.FormData.label: i18nc("@label:textbox", "Token")
         }
 
         Label {
-            text: i18n("Get token from your profile page")
+            text: i18nc("@info", "Get token from your profile page")
         }
 
         Kirigami.UrlButton {

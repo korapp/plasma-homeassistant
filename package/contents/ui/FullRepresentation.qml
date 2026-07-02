@@ -62,12 +62,12 @@ PlasmaExtras.Representation {
         anchors.centerIn: parent
         active: ClientFactory.error
         sourceComponent: PlasmaExtras.PlaceholderMessage {
-            text: i18n("Failed to create WebSocket client")
+            text: i18nc("@info:status", "Failed to create WebSocket client")
             explanation: ClientFactory.errorString().split(/\:\d+\s/)[1]
             iconName: "error"
             helpfulAction: Action {
                 icon.name: "link"
-                text: i18n("Show requirements")
+                text: i18nc("@action:button", "Show requirements")
                 onTriggered: Qt.openUrlExternally(`${plasmoid.metaData.website}/tree/v${plasmoid.metaData.version}#requirements`)
             }
         }

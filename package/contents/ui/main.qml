@@ -22,7 +22,7 @@ PlasmoidItem {
 
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
-            text: i18n("Open %1", url)
+            text: i18nc("@action:inmenu", "Open %1", url)
             icon.name: "open-link-symbolic"
             onTriggered: Qt.openUrlExternally(url)
         }

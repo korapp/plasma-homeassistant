@@ -12,7 +12,7 @@ Kirigami.FormLayout {
     readonly property var itemServices: item.domain && services[item.domain] || {}
 
     TextField {
-        Kirigami.FormData.label: i18n("Entity")
+        Kirigami.FormData.label: i18nc("@label:textbox", "Entity")
         text: item.entity_id
         onEditingFinished: {
             item.entity_id = text
@@ -25,10 +25,10 @@ Kirigami.FormLayout {
 
     ComboBox {
         readonly property int steps: 7
-        Kirigami.FormData.label: i18n("Precision") 
+        Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision") 
         visible: !isNaN(+source.state) && !useAttribute.checked
         model: [{
-            text: i18n("%1 (raw)", source.state),
+            text: i18nc("@item:inlistbox number format", "%1 (raw)", source.state),
             value: undefined
         }, ...Array.from({ length: steps }, (_, i) => ({
             text: Formatter.formatIfNumber(source.state, i),
@@ -44,7 +44,7 @@ Kirigami.FormLayout {
     }
 
     Row {
-        Kirigami.FormData.label: i18n("Display attribute") 
+        Kirigami.FormData.label: i18nc("@label", "Display attribute") 
         CheckBox {
             id: useAttribute
             anchors.verticalCenter: parent.verticalCenter
@@ -57,7 +57,6 @@ Kirigami.FormLayout {
             onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
             enabled: useAttribute.checked
             onEnabledChanged: activated(enabled ? currentIndex : -1)
-            Kirigami.FormData.label: i18n("Display attribute")
         }
     }
 
@@ -65,11 +64,11 @@ Kirigami.FormLayout {
         text: item.name || ''
         placeholderText: source.attributes?.friendly_name || ''
         onTextChanged: item.name = text
-        Kirigami.FormData.label: i18n("Name")
+        Kirigami.FormData.label: i18nc("@label:textbox", "Name")
     }
 
     Row {
-        Kirigami.FormData.label: i18n("Icon")
+        Kirigami.FormData.label: i18nc("@label:textbox", "Icon")
         spacing: Kirigami.Units.smallSpacing
         TextField {
             id: iconName
@@ -85,7 +84,7 @@ Kirigami.FormLayout {
     }
 
     CheckBox {
-        Kirigami.FormData.label: i18n("Notify about changes")
+        Kirigami.FormData.label: i18nc("@label", "Notify about changes")
         checked: !!item.notify
         onCheckedChanged: item.notify = checked
     }
@@ -119,14 +118,14 @@ Kirigami.FormLayout {
     }
 
     ServiceSelector {
-        Kirigami.FormData.label: i18n("Click action")
+        Kirigami.FormData.label: i18nc("@label", "Click action")
         initialValue: item.default_action?.service
         onCurrentValueChanged: s => item.default_action = { service: currentValue }
     }
 
     ServiceSelector {
         id: scrollActionSelector
-        Kirigami.FormData.label: i18n("Scroll action")
+        Kirigami.FormData.label: i18nc("@label", "Scroll action")
         serviceFilter: k => getNumberFields(itemServices[k]).length
         initialValue: item.scroll_action?.service
         onCurrentValueChanged: scrollFieldSelector.model = getNumberFields(itemServices[currentValue])
