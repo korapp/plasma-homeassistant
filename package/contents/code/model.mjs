@@ -1,27 +1,15 @@
-import { formatIfNumber } from "./formatter.mjs"
-
 const activeStates = ['on', 'open', 'idle']
-const noValueStates = ['unknown', 'unavailable']
 
-function getDisplayValue({ attributes, state }, config = {}) {
-    const { attribute, value_number_precision } = config
-    if (attribute && attributes[attribute]) return attributes[attribute] + ''
-    if (!state) return ''
-    const unit = attributes.unit_of_measurement
-    if (unit && !noValueStates.includes(state)) return formatIfNumber(state, value_number_precision) + (unit === '%' ? unit : ' ' + unit)
-    return state
-}
-
-export function EntityUpdate(config = {}, update = {}, entity = {}) {
+export function EntityUpdate(config = {}, update = {}, entity = {}, options = {}) {
     this.attributes = Object.assign({}, entity.attributes, update.a)
     this.icon = config.icon || this.attributes.icon || ''
     this.state = update.s || entity.state || ''
     this.active = activeStates.includes(this.state)
-    this.value = getDisplayValue(this, config)
+    this.value = options.valueFormatter?.(this, config) ?? ''
 }
 
-export function Entity(config = {}, data = {}) {
-    Object.assign(this, new EntityUpdate(config, data))
+export function Entity(config = {}, data = {}, options = {}) {
+    Object.assign(this, new EntityUpdate(config, data, undefined, options))
     this.entity_id = config.entity_id
     this.name = config.name || this.attributes.friendly_name || ''
     this.attribute = config.attribute || ''
