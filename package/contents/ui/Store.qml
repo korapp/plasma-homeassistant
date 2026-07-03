@@ -137,14 +137,19 @@ BaseObject {
             if (event.c) updateState(event.c)
         }
 
-        function initFields(s) {
-            fields = items.reduce((a, i) => {
-                if (!i.scroll_action) return
+        function initFields(services) {
+            const results = {}
+            for (const i of items) {
+                if (!i.scroll_action) continue
                 const field = i.scroll_action.data_field
                 const key = i.scroll_action.domain + i.scroll_action.service + field
-                const serviceFields = s[i.scroll_action.domain][i.scroll_action.service].fields
-                a[key] = (serviceFields[field] || serviceFields.advanced_fields.fields[field])?.selector
-            })
+                const serviceFields = services[i.scroll_action.domain][i.scroll_action.service].fields
+                results[key] = (serviceFields[field]
+                    || serviceFields.additional_fields?.fields[field]
+                    || serviceFields.advanced_fields?.fields[field]
+                )?.selector
+            }
+            fields = results
         }
     }
 }
