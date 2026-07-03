@@ -37,7 +37,7 @@ GridLayout {
 
         model: DisplayFilterModel {
             id: compactItems
-            sourceModel: itemModel
+            sourceModel: store.itemModel
             filterItems: DisplayFilterModel.Compact
         }
 
@@ -64,7 +64,7 @@ GridLayout {
     
     ExpandButton {
         onClicked: root.expanded = !root.expanded
-        visible: hasFullRepresenationItems || !trayMode
+        visible: store.hasFullRepresenationItems || !trayMode
         Layout.preferredHeight: grid.itemSize
         Layout.preferredWidth: grid.itemSize
         Layout.rowSpan: grid.vertical ? 1 : grid.rows

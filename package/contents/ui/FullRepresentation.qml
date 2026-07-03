@@ -14,7 +14,7 @@ PlasmaExtras.Representation {
     Loader {
         id: gridLoader
         sourceComponent: gridComponent
-        active: root.initialized && root.expanded
+        active: store.initialized && root.expanded
         anchors.fill: parent
     }
 
@@ -31,7 +31,7 @@ PlasmaExtras.Representation {
                 cellWidth: dynamicCellWidth
                 cellHeight: minItemWidth / 2
                 model: DisplayFilterModel {
-                    sourceModel: itemModel
+                    sourceModel: store.itemModel
                     filterItems: DisplayFilterModel.Full
                 }
                 delegate: EntityWrapper {
