@@ -46,6 +46,14 @@ BaseObject {
         return Array.from(new Set(items.map(i => i.domain)))
     }
 
+    function translateState(state, domain, device_class) {
+        return _.translateState(state, domain, device_class)
+    }
+
+    function translateAttributeValue(value, domain, attribute) {
+        return _.translateAttributeValue(value, domain, attribute)
+    }
+
     QtObject {
         id: _
         property bool initialized: false
@@ -79,17 +87,26 @@ BaseObject {
             })
         }
 
+        function translateState(state, domain, device_class) {
+            if (!translations) return state
+            return translations[getTranslationKey(state, domain, device_class)]
+                || translations[getTranslationKey(state, domain)]
+                || noValueStates[state]
+                || state
+        }
+
+        function translateAttributeValue(value, domain, attribute) {
+            if (!translations) return value
+            return translations[`component.${domain}.entity_component._.state_attributes.${attribute}.state.${value}`] || value
+        }
+
         function getDisplayValue({ attributes, state }, config = {}) {
             const { attribute, domain, value_number_precision } = config
             if (attribute && attributes[attribute]) return attributes[attribute] + ''
             if (!state) return ''
             const unit = attributes.unit_of_measurement
             if (unit && !(state in noValueStates)) return Formatter.formatIfNumber(state, value_number_precision) + (unit === '%' ? unit : ' ' + unit)
-            if (!translations) return state
-            return translations[getTranslationKey(state, domain, attributes.device_class)]
-                || translations[getTranslationKey(state, domain)]
-                || noValueStates[state]
-                || state
+            return translateState(state, domain, attributes.device_class)
         }
 
         function subscribe() { 

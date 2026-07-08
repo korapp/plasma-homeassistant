@@ -5,9 +5,11 @@ import org.kde.kirigami as Kirigami
 import 'mdi'
 
 Loader {
+    id: dynamicIcon
     property string name
     property string type
     property string id
+    property color color: "transparent"
 
     sourceComponent: {
         switch(type) {
@@ -25,6 +27,7 @@ Loader {
         id: mdi
         MdiIcon {
             name: id
+            color: dynamicIcon.color.a > 0 ? dynamicIcon.color : Kirigami.Theme.textColor
         }
     }
 
@@ -32,6 +35,7 @@ Loader {
         id: plasma
         Kirigami.Icon {
             source: id
+            color: dynamicIcon.color
         }
     }
 }

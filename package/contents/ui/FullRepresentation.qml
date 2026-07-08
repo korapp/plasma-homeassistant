@@ -39,8 +39,12 @@ PlasmaExtras.Representation {
                     height: GridView.view.cellHeight - Kirigami.Units.smallSpacing
                     flat: plasmoid.configuration.flat
                     showBackground: true
-                    EntityDelegateTile {
+                    // the thermostat tile has its own stepped scroll-to-adjust handling
+                    scrollActionEnabled: model.domain !== 'climate'
+                    Loader {
                         anchors.fill: parent
+                        anchors.margins: Kirigami.Units.smallSpacing
+                        source: model.domain === 'climate' ? 'ThermostatTile.qml' : 'EntityDelegateTile.qml'
                     }
                 }
             }

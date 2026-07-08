@@ -12,6 +12,7 @@ MouseArea {
     hoverEnabled: true
     property bool flat: true
     property bool showBackground: false
+    property bool scrollActionEnabled: true
     property alias tooltipTitle: tooltip.mainText
     readonly property var actions: getActiveActions()
     property alias content: socket.contentItem
@@ -91,25 +92,36 @@ MouseArea {
             }
         },
         Loader {
-            active: model.active && !!scroll_action
+            active: model.active && !!scroll_action && control.scrollActionEnabled
             anchors.fill: parent
             parent: socket.background || socket
             sourceComponent: Component {
                 Item {
                     readonly property string tip: `Scroll to adjust ${format(scroll_action.data_field)}`
                     readonly property var scrollAttributeField: store.fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
-                    readonly property var max: scrollAttributeField?.number.max || 1
-                    readonly property var min: scrollAttributeField?.number.min || 0
-                    property real position: (attributes[scroll_action.data_field] - min) / (max - min)
-                    
-                    WheelHandler {            
+                    // entity-level bounds (e.g. climate min_temp/max_temp) are tighter than the service field's
+                    readonly property string boundsKey: ({ temperature: 'temp' })[scroll_action.data_field] || scroll_action.data_field
+                    readonly property var max: attributes[`max_${boundsKey}`] ?? (scrollAttributeField?.number.max || 1)
+                    readonly property var min: attributes[`min_${boundsKey}`] ?? (scrollAttributeField?.number.min || 0)
+                    property real position
+
+                    function currentPosition() {
+                        const p = (attributes[scroll_action.data_field] - min) / (max - min)
+                        return isNaN(p) ? 0 : Math.min(1, Math.max(0, p))
+                    }
+
+                    WheelHandler {
+                        id: wheel
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         orientation: Qt.Vertical
                         onWheel: e => {
                             const p = position + e.angleDelta.y / 3600
                             position = p > 1 ? 1 : p < 0 ? 0 : p
                         }
-                        onActiveChanged: !active && ha.callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
+                        // seed from live state when a scroll gesture starts, commit when it ends
+                        onActiveChanged: active
+                            ? position = currentPosition()
+                            : ha.callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
                     }
                     Rectangle {
                         visible: control.showBackground
@@ -117,7 +129,7 @@ MouseArea {
                         x: 1
                         y: 1
                         height: parent.height - 2 * y
-                        width: position * (parent.width - 2 * x)
+                        width: (wheel.active ? position : currentPosition()) * (parent.width - 2 * x)
                         color: Kirigami.Theme.highlightColor
                         opacity: 0.6
                     }

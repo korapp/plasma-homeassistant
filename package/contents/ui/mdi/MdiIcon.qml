@@ -7,9 +7,11 @@ import org.kde.kirigami as Kirigami
 import "."
 
 Item {
+    id: icon
     required property string name
+    property color color: Kirigami.Theme.textColor
     readonly property var size: Mdi.scaleIconForPlasma(name, Qt.size(width, height))
-    
+
     KSvg.SvgItem {
         height: size.height
         width: size.width
@@ -20,7 +22,7 @@ Item {
         layer.effect: MultiEffect {
             brightness: 1
             colorization: 1
-            colorizationColor: Kirigami.Theme.textColor
+            colorizationColor: icon.color
         }
     }
 }
