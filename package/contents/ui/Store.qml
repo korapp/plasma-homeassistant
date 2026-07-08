@@ -17,18 +17,21 @@ BaseObject {
         fetchDataAndSubscribe()
     }
 
+    Component.onDestruction: setClient(null)
+
     function setClient(client) {
         if (_.client) {
             _.unsubscribe()
             _.client.readyChanged.disconnect(fetchDataAndSubscribe)
         }
         _.client = client
+        if (!client) return
         fetchDataAndSubscribe()
-        _.client.readyChanged.connect(fetchDataAndSubscribe)
+        client.readyChanged.connect(fetchDataAndSubscribe)
     }
 
     function fetchDataAndSubscribe() {
-        if (!_.client?.ready) return
+        if (!_?.client?.ready) return
         fetchFieldsInfo()
         _.subscribe()
     }
