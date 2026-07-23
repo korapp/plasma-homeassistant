@@ -41,15 +41,16 @@ KCM.SimpleKCM {
             onActiveFocusChanged: !activeFocus && setValue(editText)
             onHoveredChanged: !hovered && setValue(editText)
             onAccepted: setValue(editText)
-            onActivated: {
-                secrets.restore(editText)
-                setValue(editText)
-            }
+            onActivated: setValue(editText)
             Kirigami.FormData.label: i18n("Home Assistant URL")
             Layout.fillWidth: true
 
             function setValue(value) {
-                cfg_url = editText = value ? value.replace(/\s+|\/+\s*$/g,'') : ''
+                const cleaned = value ? value.replace(/\s+|\/+\s*$/g,'') : ''
+                if (cleaned !== cfg_url) {
+                    secrets.restore(cleaned)
+                }
+                cfg_url = editText = cleaned
             }
         }
 
@@ -75,6 +76,9 @@ KCM.SimpleKCM {
     }
     
     function saveConfig() {
-        secrets.set(url.editText, token.text)
+        // an empty field would overwrite the token stored in the wallet
+        if (token.text) {
+            secrets.set(url.editText, token.text)
+        }
     }
 }
