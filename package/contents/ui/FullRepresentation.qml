@@ -63,7 +63,7 @@ PlasmaExtras.Representation {
         active: ClientFactory.error
         sourceComponent: PlasmaExtras.PlaceholderMessage {
             text: i18n("Failed to create WebSocket client")
-            explanation: ClientFactory.errorString().split(/\:\d+\s/)[1]
+            explanation: ClientFactory.errorString().split(/\d+:\s+/)?.[1]
             iconName: "error"
             helpfulAction: Action {
                 icon.name: "link"
