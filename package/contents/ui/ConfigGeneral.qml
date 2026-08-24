@@ -9,6 +9,8 @@ KCM.SimpleKCM {
     property string cfg_url
 
     signal configurationChanged
+    
+    onCfg_urlChanged: secrets.restore(cfg_url)
 
     Kirigami.FormLayout {
         Secrets {
@@ -38,19 +40,14 @@ KCM.SimpleKCM {
             id: url
             editable: true
             onModelChanged: currentIndex = indexOfValue(cfg_url)
-            onActiveFocusChanged: !activeFocus && setValue(editText)
-            onHoveredChanged: !hovered && setValue(editText)
-            onAccepted: setValue(editText)
-            onActivated: {
-                secrets.restore(editText)
-                setValue(editText)
+            onActiveFocusChanged: !activeFocus && accepted()
+            onActivated: cfg_url = editText = currentValue
+            onAccepted: cfg_url = editText
+            validator: RegularExpressionValidator { 
+                regularExpression: /^https?:\/\/\w+[\w.-]+\w+(?::\d{2,5})?$/
             }
             Kirigami.FormData.label: i18n("Home Assistant URL")
             Layout.fillWidth: true
-
-            function setValue(value) {
-                cfg_url = editText = value ? value.replace(/\s+|\/+\s*$/g,'') : ''
-            }
         }
 
         Label {
@@ -69,12 +66,12 @@ KCM.SimpleKCM {
         }
 
         Kirigami.UrlButton {
-            url: url.editText + "/profile/security"
-            visible: url.editText
+            url: cfg_url + "/profile/security"
+            visible: cfg_url
         }
     }
     
     function saveConfig() {
-        secrets.set(url.editText, token.text)
+        secrets.set(cfg_url, token.text)
     }
 }
