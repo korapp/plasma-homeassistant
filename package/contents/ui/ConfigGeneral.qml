@@ -9,7 +9,7 @@ KCM.SimpleKCM {
     property string cfg_url
 
     signal configurationChanged
-    
+
     onCfg_urlChanged: secrets.restore(cfg_url)
 
     Kirigami.FormLayout {
@@ -20,7 +20,7 @@ KCM.SimpleKCM {
                 restore(cfg_url)
                 list().then(urls => (url.model = urls))
             }
-            
+
             function restore(entryKey) {
                 if (!entryKey) {
                     return this.token = ""
@@ -43,7 +43,7 @@ KCM.SimpleKCM {
             onActiveFocusChanged: !activeFocus && accepted()
             onActivated: cfg_url = editText = currentValue
             onAccepted: cfg_url = editText
-            validator: RegularExpressionValidator { 
+            validator: RegularExpressionValidator {
                 regularExpression: /^https?:\/\/\w+[\w.-]+\w+(?::\d{2,5})?$/
             }
             Kirigami.FormData.label: i18nc("@label:listbox", "Home Assistant URL")
@@ -58,6 +58,9 @@ KCM.SimpleKCM {
             id: token
             text: secrets.token
             onTextEdited: configurationChanged()
+            validator: RegularExpressionValidator {
+                regularExpression: /^[\w-]+\.[\w-]+\.[\w-]+$/
+            }
             Kirigami.FormData.label: i18nc("@label:textbox", "Token")
         }
 
@@ -70,8 +73,9 @@ KCM.SimpleKCM {
             visible: cfg_url
         }
     }
-    
+
     function saveConfig() {
+        if (!token.acceptableInput) return
         secrets.set(cfg_url, token.text)
     }
 }
