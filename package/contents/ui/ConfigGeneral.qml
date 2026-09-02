@@ -58,6 +58,9 @@ KCM.SimpleKCM {
             id: token
             text: secrets.token
             onTextEdited: configurationChanged()
+            validator: RegularExpressionValidator { 
+                regularExpression: /^[\w-]+\.[\w-]+\.[\w-]+$/
+            }
             Kirigami.FormData.label: i18n("Token")
         }
 
@@ -72,6 +75,7 @@ KCM.SimpleKCM {
     }
     
     function saveConfig() {
+        if (!token.acceptableInput) return
         secrets.set(cfg_url, token.text)
     }
 }
