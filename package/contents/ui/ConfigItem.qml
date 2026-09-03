@@ -95,7 +95,7 @@ Kirigami.FormLayout {
         property alias currentValue: serviceSelector.currentValue
         property var initialValue
         property var serviceFilter
-        default property alias data: nested.data
+        default property alias content: nested.data
         CheckBox {
             id: useAction
             anchors.verticalCenter: parent.verticalCenter
@@ -106,11 +106,7 @@ Kirigami.FormLayout {
             enabled: useAction.checked
             onEnabledChanged: if (!enabled) currentIndex = -1
             onCurrentIndexChanged: useAction.checked = ~currentIndex
-            onModelChanged: resetIndex()
-            Component.onCompleted: resetIndex()
-            function resetIndex() {
-                currentIndex = initialValue && count ? indexOfValue(initialValue) : -1
-            }
+            currentValue: initialValue
         }
         Column {
             enabled: serviceSelector.enabled
@@ -118,10 +114,14 @@ Kirigami.FormLayout {
         }
     }
 
+    function assignAction(action, part) {
+        item[action] = Object.assign({}, item[action], part)
+    }
+
     ServiceSelector {
         Kirigami.FormData.label: i18n("Click action")
         initialValue: item.default_action?.service
-        onCurrentValueChanged: s => item.default_action = { service: currentValue }
+        onCurrentValueChanged: assignAction('default_action', { service: currentValue })
     }
 
     ServiceSelector {
@@ -129,15 +129,12 @@ Kirigami.FormLayout {
         Kirigami.FormData.label: i18n("Scroll action")
         serviceFilter: k => getNumberFields(itemServices[k]).length
         initialValue: item.scroll_action?.service
-        onCurrentValueChanged: scrollFieldSelector.model = getNumberFields(itemServices[currentValue])
+        onCurrentValueChanged: assignAction('scroll_action', { service: currentValue })
 
         ComboBox {
-            id: scrollFieldSelector
-            model: scrollActionSelector.currentValue
-            onCurrentValueChanged: item.scroll_action = { service: scrollActionSelector.currentValue, data_field: currentValue }
-            onModelChanged: currentIndex = item.scroll_action?.data_field
-                ? indexOfValue(item.scroll_action.data_field)
-                : count === 1 ? 0 : -1
+            model: getNumberFields(itemServices[scrollActionSelector.currentValue])
+            onCurrentValueChanged: assignAction('scroll_action', { data_field: currentValue })
+            onCountChanged: count && (currentValue = item.scroll_action?.data_field || model[0])
         }
     }
 
