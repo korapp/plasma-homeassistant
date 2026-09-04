@@ -16,9 +16,8 @@ MouseArea {
     readonly property var actions: getActiveActions()
     property alias content: socket.contentItem
     property alias background: socket.background
-    
+
     Kirigami.Theme.inherit: flat
-    Kirigami.Theme.colorGroup: flat && parent ? parent.Kirigami.Theme.colorGroup : Kirigami.Theme.ButtonColorGroup
 
     Control {
         id: socket
@@ -36,7 +35,7 @@ MouseArea {
                     prefix: ["toolbutton-normal", "normal"]
                     visible: !flat
                 }
-                
+
                 KSvg.FrameSvgItem {
                     id: surfacePressed
                     anchors.fill: parent
@@ -101,8 +100,8 @@ MouseArea {
                     readonly property var max: scrollAttributeField?.number.max || 1
                     readonly property var min: scrollAttributeField?.number.min || 0
                     property real position: (attributes[scroll_action.data_field] - min) / (max - min)
-                    
-                    WheelHandler {            
+
+                    WheelHandler {
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         orientation: Qt.Vertical
                         onWheel: e => {
