@@ -145,9 +145,16 @@ KCM.ScrollViewKCM {
 
     Component.onCompleted: {
         setItems(cfg_items)
-        ha = ClientFactory.getClient(this, plasmoid.configuration.url)
-        ha.readyChanged.connect(fetchData)
+        ha = ClientFactory.getClient(this, plasmoid.configuration.url) ?? null
+        if (ha) {
+            ha.readyChanged.connect(fetchData)
+            fetchData()
+        } else {
+            busy = false
+        }
     }
+
+    Component.onDestruction: ha?.readyChanged.disconnect(fetchData)
 
     function setItems(data) {
         const rawItems = JSON.parse(data) || []

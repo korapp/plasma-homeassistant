@@ -11,7 +11,7 @@ PlasmoidItem {
     fullRepresentation: FullRepresentation {}
     Plasmoid.backgroundHints: PlasmaCore.Types.StandardBackground | PlasmaCore.Types.ConfigurableBackground
     Plasmoid.configurationRequired: !ClientFactory.error && !(url && ha?.token && store.items.length)
-    Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !store.initialized
+    Plasmoid.busy: !ClientFactory.error && !ha?.errorString && !plasmoid.configurationRequired && !store.initialized
     toolTipMainText: ""
     toolTipSubText: ""
     

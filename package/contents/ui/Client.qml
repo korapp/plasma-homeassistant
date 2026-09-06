@@ -47,7 +47,8 @@ BaseObject {
     WebSocket {
         id: ws
         property bool ready: false
-        property int messageCounter: 0
+        // HA rejects id 0 as "Message incorrectly formatted" — ids must start at 1
+        property int messageCounter: 1
         property var subscriptions: new Map()
         property var promises: new Map()
         readonly property bool open: status === WebSocket.Open
