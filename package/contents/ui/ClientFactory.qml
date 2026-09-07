@@ -33,7 +33,9 @@ BaseObject {
 
     function _createClient(baseUrl) {
         const client = clientComponent.createObject(null, { baseUrl })
-        secrets.getToken(baseUrl).then(t => client.token = t)
+        secrets.getToken(baseUrl)
+            .then(t => client.token = t)
+            .catch(e => client.errorString = i18n("Failed to read the access token from KDE Wallet") + (e ? `: ${e}` : ''))
         return client
     }
 
