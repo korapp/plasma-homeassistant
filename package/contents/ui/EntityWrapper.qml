@@ -13,7 +13,7 @@ MouseArea {
     property bool flat: true
     property bool showBackground: false
     property alias tooltipTitle: tooltip.mainText
-    readonly property var actions: getActiveActions()
+    readonly property var actions: actionLoaders.filter(l => l.item)
     property alias content: socket.contentItem
     property alias background: socket.background
     property bool pending
@@ -67,14 +67,6 @@ MouseArea {
 
     function format(underscoredText) {
         return underscoredText && underscoredText.replace(/_/g, ' ')
-    }
-
-    function getActiveActions() {
-        const actions = []
-        for (let a in actionLoaders) {
-            if (actionLoaders[a].item) actions.push(actionLoaders[a])
-        }
-        return actions
     }
 
     function callService(...args) {
