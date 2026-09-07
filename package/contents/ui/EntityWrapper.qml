@@ -16,6 +16,7 @@ MouseArea {
     readonly property var actions: getActiveActions()
     property alias content: socket.contentItem
     property alias background: socket.background
+    property bool pending
 
     Kirigami.Theme.inherit: flat
 
@@ -76,6 +77,12 @@ MouseArea {
         return actions
     }
 
+    function callService(...args) {
+        pending = true
+        const reset = () => pending = false
+        return ha.callService(...args).then(reset, reset)
+    }
+
     readonly property list<Loader> actionLoaders: [
         Loader {
             active: !!default_action
@@ -84,7 +91,7 @@ MouseArea {
                     readonly property string tip: `Click to ${format(default_action.service)}`
                     target: control
                     function onClicked() {
-                        ha.callService(default_action)
+                        callService(default_action)
                     }
                 }
             }
@@ -99,8 +106,13 @@ MouseArea {
                     readonly property var scrollAttributeField: store.fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
                     readonly property var max: scrollAttributeField?.number.max || 1
                     readonly property var min: scrollAttributeField?.number.min || 0
-                    property real position: (attributes[scroll_action.data_field] - min) / (max - min)
+                    readonly property real attributeBasedPosition: (attributes[scroll_action.data_field] - min) / (max - min)
+                    property real position
 
+                    Binding on position {
+                        when: !pending
+                        value: attributeBasedPosition
+                    }
                     WheelHandler {
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         orientation: Qt.Vertical
@@ -108,7 +120,7 @@ MouseArea {
                             const p = position + e.angleDelta.y / 3600
                             position = p > 1 ? 1 : p < 0 ? 0 : p
                         }
-                        onActiveChanged: !active && ha.callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
+                        onActiveChanged: !active && callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
                     }
                     Rectangle {
                         visible: control.showBackground
