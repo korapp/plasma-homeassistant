@@ -35,6 +35,6 @@ MouseArea {
     PlasmaCore.ToolTipArea {
         anchors.fill: parent
         mainText: plasmoid.title
-        subText: root.expanded ? i18n("Hide entities") : i18n("Show entities")
+        subText: root.expanded ? i18nc("@info:tooltip", "Hide entities") : i18nc("@info:tooltip", "Show entities")
     }
 }
