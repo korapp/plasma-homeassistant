@@ -12,10 +12,7 @@ BaseObject {
     readonly property alias fields: _.fields
     readonly property alias hasFullRepresenationItems: _.hasFullRepresenationItems
 
-    onItemsChanged: {
-        _.hasFullRepresenationItems = items.some(e => e.display & DisplayFilterModel.Full)
-        fetchDataAndSubscribe()
-    }
+    onItemsChanged: fetchDataAndSubscribe()
 
     function setClient(client) {
         if (_.client) {
@@ -39,7 +36,7 @@ BaseObject {
     }
 
     function getUsedEntityIds() {
-        return items.map(i => i.entity_id)
+        return Object.keys(_.itemIdxsByEntityId)
     }
 
     function getUsedDomains() {
@@ -51,7 +48,8 @@ BaseObject {
         property bool initialized: false
         property var fields: ({})
         property var translations
-        property bool hasFullRepresenationItems: false
+        readonly property bool hasFullRepresenationItems: items.some(e => e.display & DisplayFilterModel.Full)
+        readonly property var itemIdxsByEntityId: items.reduce((o, { entity_id: e }, i) => (o[e] = o[e] || []).push(i) && o, {})
         property Client client
         property var cancelSubscription
 
@@ -92,7 +90,7 @@ BaseObject {
                 || state
         }
 
-        function subscribe() { 
+        function subscribe() {
             unsubscribe()
             if (!items.length) return
             loadTranslations().then(() => {
@@ -106,17 +104,19 @@ BaseObject {
 
         function updateState(state) {
             for(const id in state) {
-                const itemIdx = items.findIndex(i => i.entity_id === id)
-                const config = items[itemIdx]
+                const itemIdxs = itemIdxsByEntityId[id]
                 const change = state[id]['+']
-                const item = itemModel.get(itemIdx)
-                const newItem = new Model.EntityUpdate(config, change, item, { 
-                    valueFormatter: getDisplayValue
-                })
-                const oldValue = item.value
-                itemModel.set(itemIdx, newItem)
-                if (config.notify && oldValue !== newItem.value) {
-                    notifications.createNotification(item.name + " " + newItem.value)
+                for (const itemIdx of itemIdxs) {
+                    const config = items[itemIdx]
+                    const item = itemModel.get(itemIdx)
+                    const newItem = new Model.EntityUpdate(config, change, item, {
+                        valueFormatter: getDisplayValue
+                    })
+                    const oldValue = item.value
+                    itemModel.set(itemIdx, newItem)
+                    if (config.notify && oldValue !== newItem.value) {
+                        notifications.createNotification(item.name + " " + newItem.value)
+                    }
                 }
             }
         }

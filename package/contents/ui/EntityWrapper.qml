@@ -13,12 +13,12 @@ MouseArea {
     property bool flat: true
     property bool showBackground: false
     property alias tooltipTitle: tooltip.mainText
-    readonly property var actions: getActiveActions()
+    readonly property var actions: actionLoaders.filter(l => l.item)
     property alias content: socket.contentItem
     property alias background: socket.background
-    
+    property bool pending
+
     Kirigami.Theme.inherit: flat
-    Kirigami.Theme.colorGroup: flat && parent ? parent.Kirigami.Theme.colorGroup : Kirigami.Theme.ButtonColorGroup
 
     Control {
         id: socket
@@ -36,7 +36,7 @@ MouseArea {
                     prefix: ["toolbutton-normal", "normal"]
                     visible: !flat
                 }
-                
+
                 KSvg.FrameSvgItem {
                     id: surfacePressed
                     anchors.fill: parent
@@ -69,12 +69,10 @@ MouseArea {
         return underscoredText && underscoredText.replace(/_/g, ' ')
     }
 
-    function getActiveActions() {
-        const actions = []
-        for (let a in actionLoaders) {
-            if (actionLoaders[a].item) actions.push(actionLoaders[a])
-        }
-        return actions
+    function callService(...args) {
+        pending = true
+        const reset = () => pending = false
+        return ha.callService(...args).then(reset, reset)
     }
 
     readonly property list<Loader> actionLoaders: [
@@ -85,7 +83,7 @@ MouseArea {
                     readonly property string tip: `Click to ${format(default_action.service)}`
                     target: control
                     function onClicked() {
-                        ha.callService(default_action)
+                        callService(default_action)
                     }
                 }
             }
@@ -100,16 +98,21 @@ MouseArea {
                     readonly property var scrollAttributeField: store.fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
                     readonly property var max: scrollAttributeField?.number.max || 1
                     readonly property var min: scrollAttributeField?.number.min || 0
-                    property real position: (attributes[scroll_action.data_field] - min) / (max - min)
-                    
-                    WheelHandler {            
+                    readonly property real attributeBasedPosition: (attributes[scroll_action.data_field] - min) / (max - min)
+                    property real position
+
+                    Binding on position {
+                        when: !pending
+                        value: attributeBasedPosition
+                    }
+                    WheelHandler {
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         orientation: Qt.Vertical
                         onWheel: e => {
                             const p = position + e.angleDelta.y / 3600
                             position = p > 1 ? 1 : p < 0 ? 0 : p
                         }
-                        onActiveChanged: !active && ha.callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
+                        onActiveChanged: !active && callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
                     }
                     Rectangle {
                         visible: control.showBackground
