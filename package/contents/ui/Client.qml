@@ -14,10 +14,10 @@ BaseObject {
     property string errorString: ""
     readonly property alias ready: ws.ready
     readonly property bool configured: ws.url && token
-    
+
     onBaseUrlChanged: ws.url = baseUrl.replace('http', 'ws') + "/api/websocket"
     onConfiguredChanged: ws.active = configured
-    
+
     Connections {
         target: ws
         function onError(msg) { errorString = msg }
@@ -35,8 +35,8 @@ BaseObject {
                 ws.reconnect()
             } else {
                 ws.ping()
-            }   
-            waiting = !waiting         
+            }
+            waiting = !waiting
         }
         function reset() {
             waiting = false
@@ -70,8 +70,14 @@ BaseObject {
         onErrorStringChanged: () => errorString && error(errorString)
 
         function reconnect() {
+            rejectPromises({ code: 'connection-lost', message: 'Connection lost' })
             active = false
             active = true
+        }
+
+        function rejectPromises(reason) {
+            promises.forEach(p => p.reject(reason))
+            promises.clear()
         }
 
         function handleResult(msg) {
