@@ -1,10 +1,10 @@
-const activeStates = ['on', 'open', 'idle']
+import { isActiveState } from "states.mjs"
 
 export function EntityUpdate(config = {}, update = {}, entity = {}, options = {}) {
     this.attributes = Object.assign({}, entity.attributes, update.a)
     this.icon = config.icon || this.attributes.icon || ''
     this.state = update.s || entity.state || ''
-    this.active = activeStates.includes(this.state)
+    this.active = isActiveState(config.domain, this.state)
     this.value = options.valueFormatter?.(this, config) ?? ''
 }
 
@@ -56,7 +56,7 @@ function addActionProperty(o, name) {
         enumerable: true,
         get: function() { return o[Symbol.for(name)] },
         set: function(action) {
-            o[Symbol.for(name)] = !action?.service ? null : { 
+            o[Symbol.for(name)] = !action?.service ? null : {
                 service: action.service,
                 domain: action.domain || o.domain,
                 target: action.target || { entity_id: o.entity_id },
@@ -69,5 +69,5 @@ function addActionProperty(o, name) {
 function updateAction(o, name) {
     if (!o[name]) return
     if (o.domain !== o[name].domain) return o[name] = null
-    o[name].target.entity_id = o.entity_id    
+    o[name].target.entity_id = o.entity_id
 }
