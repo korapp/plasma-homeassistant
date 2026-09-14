@@ -3,13 +3,14 @@ import QtQuick
 import "./components"
 import "../code/model.mjs" as Model
 import "../code/formatter.mjs" as Formatter
+import "../code/serviceOverrides.mjs" as ServiceOverrides
 
 BaseObject {
     property var items: []
     property string language
     readonly property alias initialized: _.initialized
     readonly property ListModel itemModel: ListModel {}
-    readonly property alias fields: _.fields
+    readonly property var getFieldSelector: _.getFieldSelector
     readonly property alias hasFullRepresenationItems: _.hasFullRepresenationItems
 
     onItemsChanged: fetchDataAndSubscribe()
@@ -150,6 +151,18 @@ BaseObject {
                 )?.selector
             }
             fields = results
+        }
+
+        function getFieldSelector({ domain, service, data_field }, attrs) {
+            const field = fields[domain + service + data_field]
+            const overrride = ServiceOverrides.getField(domain, service, data_field)
+            const max = attrs[overrride.max] ?? field.number.max ?? 1
+            const min = attrs[overrride.min] ?? field.number.min ?? 0
+            return {
+                scale: value => (value - min) / (max - min),
+                inverseScale: value => value * (max - min) + min,
+                attribute: overrride.attribute || data_field
+            }
         }
     }
 }
