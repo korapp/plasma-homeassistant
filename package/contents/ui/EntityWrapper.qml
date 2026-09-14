@@ -95,10 +95,8 @@ MouseArea {
             sourceComponent: Component {
                 Item {
                     readonly property string tip: `Scroll to adjust ${format(scroll_action.data_field)}`
-                    readonly property var scrollAttributeField: store.fields[scroll_action.domain + scroll_action.service + scroll_action.data_field]
-                    readonly property var max: scrollAttributeField?.number.max || 1
-                    readonly property var min: scrollAttributeField?.number.min || 0
-                    readonly property real attributeBasedPosition: (attributes[scroll_action.data_field] - min) / (max - min)
+                    property var mapper: { mapper = store.getFieldScrollMapper(scroll_action, attributes) }
+                    readonly property real attributeBasedPosition: mapper.normalize(attributes[mapper.attribute])
                     property real position
 
                     Binding on position {
@@ -112,7 +110,7 @@ MouseArea {
                             const p = position + e.angleDelta.y / 3600
                             position = p > 1 ? 1 : p < 0 ? 0 : p
                         }
-                        onActiveChanged: !active && callService(scroll_action, { [scroll_action.data_field]: position * (max - min) + min })
+                        onActiveChanged: !active && callService(scroll_action, { [scroll_action.data_field]: mapper.denormalize(position) })
                     }
                     Rectangle {
                         visible: control.showBackground
