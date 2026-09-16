@@ -18,6 +18,14 @@ const SERVICE_FIELDS_TO_ATTRIBUTES = Object.freeze({
         attribute: 'curent_tilt_position'
       }
     }
+  },
+  water_heater: {
+    set_temperature: {
+      temperature: {
+        max: 'max_temp',
+        min: 'min_temp'
+      }
+    }
   }
 })
 
