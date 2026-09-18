@@ -4,7 +4,7 @@ import QtQuick.Controls
 Popup {
     property TextField target: parent
     property var model
-    
+
     function getModel() {
         return model.filter(i => textMaches(i, target.text))
     }
@@ -30,12 +30,13 @@ Popup {
     y: target.height
     width: target.width
     padding: 1
-    height: Math.min(contentItem.contentHeight + verticalPadding * 2, target.parent.height - y - target.y) 
+    height: Math.min(contentItem.contentHeight + verticalPadding * 2, target.parent.height - y - target.y)
     onClosed: target.focus = false
 
     contentItem: ScrollView {
         ListView {
             id: list
+            clip: true
             model: visible ? getModel() : null
             highlightMoveDuration: 0
             delegate: ItemDelegate {
