@@ -3,13 +3,14 @@ import QtQuick
 import "./components"
 import "../code/model.mjs" as Model
 import "../code/formatter.mjs" as Formatter
+import "../code/serviceOverrides.mjs" as ServiceOverrides
 
 BaseObject {
     property var items: []
     property string language
     readonly property alias initialized: _.initialized
     readonly property ListModel itemModel: ListModel {}
-    readonly property alias fields: _.fields
+    readonly property var getFieldScrollMapper: _.getFieldScrollMapper
     readonly property alias hasFullRepresenationItems: _.hasFullRepresenationItems
 
     onItemsChanged: fetchDataAndSubscribe()
@@ -150,6 +151,18 @@ BaseObject {
                 )?.selector
             }
             fields = results
+        }
+
+        function getFieldScrollMapper({ domain, service, data_field }, attrs) {
+            const field = fields[domain + service + data_field]
+            const override = ServiceOverrides.getField(domain, service, data_field)
+            const max = attrs['max_' + data_field] ?? attrs[override.max] ?? field.number.max ?? 1
+            const min = attrs['min_' + data_field] ?? attrs[override.min] ?? field.number.min ?? 0
+            return {
+                normalize: value => (value - min) / (max - min),
+                denormalize: value => value * (max - min) + min,
+                attribute: override.attribute || data_field
+            }
         }
     }
 }

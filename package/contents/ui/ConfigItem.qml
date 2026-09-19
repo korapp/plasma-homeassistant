@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 import "components"
 import "../code/formatter.mjs" as Formatter
 import "../code/attributesBlacklist.mjs" as Ab
+import "../code/serviceOverrides.mjs" as So
 
 Kirigami.FormLayout {
     property var item
@@ -132,20 +133,25 @@ Kirigami.FormLayout {
         serviceFilter: k => getNumberFields(itemServices[k]).length
         initialValue: item.scroll_action?.service
         onCurrentValueChanged: assignAction('scroll_action', { service: currentValue })
+        readonly property var serviceOverrides: So.getFieldsForService(item.domain, currentValue)
 
         ComboBox {
-            model: getNumberFields(itemServices[scrollActionSelector.currentValue])
+            model: scrollActionSelector.getNumberFields(itemServices[scrollActionSelector.currentValue])
             onCurrentValueChanged: assignAction('scroll_action', { data_field: currentValue })
             onCountChanged: count && (currentValue = item.scroll_action?.data_field || model[0])
         }
-    }
 
-    function getNumberFields({ fields = {} } = {}) {
-        return Object.keys(fields).reduce((f, id) => {
-            const field = fields[id]
-            if (field.fields) f.push(...getNumberFields(field))
-            if (field.selector?.number && id in source.attributes) f.push(id)
-            return f
-        }, [])
+        function getNumberFields({ fields = {} } = {}) {
+            return Object.keys(fields).reduce((f, id) => {
+                const field = fields[id]
+                if (field.fields) f.push(...getNumberFields(field))
+                if (field.selector?.number && hasAttributeForServiceField(id)) f.push(id)
+                return f
+            }, [])
+        }
+
+        function hasAttributeForServiceField(fieldName) {
+            return serviceOverrides[fieldName]?.attribute in source.attributes || fieldName in source.attributes
+        }
     }
 }
