@@ -8,6 +8,8 @@ import "../../"
 GridLayout {
     id: entityLayout
     columns: 2
+    columnSpacing: 0
+    rowSpacing: 0
     DynamicIcon {
         name: model.icon
         Layout.preferredHeight: grid.itemSize
