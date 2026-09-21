@@ -68,11 +68,12 @@ Kirigami.FormLayout {
         TextField {
             id: iconName
             text: item.icon || ''
-            placeholderText: source.attributes?.icon || 'mdi: | plasma:'
+            readonly property string sourceIcon: source.attributes?.icon || ''
+            placeholderText: sourceIcon || i18nc('@info:placeholder', 'mdi: | plasma: | path | http://')
             onTextChanged: item.icon = text
         }
         DynamicIcon {
-            name: iconName.text || iconName.placeholderText
+            name: iconName.text || iconName.sourceIcon
             height: iconName.height
             width: height
         }
