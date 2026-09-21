@@ -28,7 +28,7 @@ Kirigami.FormLayout {
     ComboBox {
         readonly property int steps: 7
         Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision")
-        visible: !isNaN(+source.state) && !useAttribute.checked
+        visible: !isNaN(+source.state) && !attributeSelector.enabled
         model: [{
             text: i18nc("@item:inlistbox number format", "%1 (raw)", source.state),
             value: undefined
@@ -45,22 +45,16 @@ Kirigami.FormLayout {
         }
     }
 
-    Row {
+    CheckableFormControl {
         Kirigami.FormData.label: i18nc("@label", "Display attribute")
         visible: attributeSelector.model?.length > 0
-        CheckBox {
-            id: useAttribute
-            anchors.verticalCenter: parent.verticalCenter
-            checked: !!item.attribute
-        }
+        checked: ~attributeSelector.currentIndex
         ComboBox {
             id: attributeSelector
-            displayText: currentText || item.attribute
             model: source.attributes ? Ab.filter(Object.keys(source.attributes)).sort() : []
             onActivated: index => item.attribute = model[index]
             onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
-            enabled: useAttribute.checked
-            onEnabledChanged: activated(enabled ? currentIndex : -1)
+            onEnabledChanged: !enabled && activated(-1)
         }
     }
 
@@ -93,25 +87,20 @@ Kirigami.FormLayout {
         onCheckedChanged: item.notify = checked
     }
 
-    component ServiceSelector: Row {
+    component ServiceSelector: CheckableFormControl {
         visible: !!serviceSelector.count
+        checked: ~serviceSelector.currentIndex
         property alias currentValue: serviceSelector.currentValue
         property var initialValue
         property var serviceFilter
         default property alias content: nested.data
-        CheckBox {
-            id: useAction
-            anchors.verticalCenter: parent.verticalCenter
-        }
         ComboBox {
             id: serviceSelector
             model: serviceFilter ? Object.keys(itemServices).filter(serviceFilter) : Object.keys(itemServices)
-            enabled: useAction.checked
+            onModelChanged: currentIndex = initialValue ? model.indexOf(initialValue) : -1
             onEnabledChanged: if (!enabled) currentIndex = -1
-            onCurrentIndexChanged: useAction.checked = ~currentIndex
-            currentValue: initialValue
         }
-        Column {
+        Row {
             enabled: serviceSelector.enabled
             id: nested
         }
