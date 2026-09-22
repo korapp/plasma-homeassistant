@@ -12,6 +12,7 @@ Kirigami.FormLayout {
     property var item
     readonly property var source: item.entity_id && entities[item.entity_id] || {}
     readonly property var itemServices: item.domain && services[item.domain] || {}
+    readonly property list<string> itemServiceNames: Object.keys(itemServices)
 
     TextField {
         Kirigami.FormData.label: i18nc("@label:textbox", "Entity")
@@ -90,19 +91,14 @@ Kirigami.FormLayout {
     component ServiceSelector: CheckableFormControl {
         visible: !!serviceSelector.count
         checked: ~serviceSelector.currentIndex
-        property alias currentValue: serviceSelector.currentValue
+        property alias service: serviceSelector.currentValue
         property var initialValue
         property var serviceFilter
-        default property alias content: nested.data
         ComboBox {
             id: serviceSelector
-            model: serviceFilter ? Object.keys(itemServices).filter(serviceFilter) : Object.keys(itemServices)
+            model: serviceFilter ? itemServiceNames.filter(serviceFilter) : itemServiceNames
             onModelChanged: currentIndex = initialValue ? model.indexOf(initialValue) : -1
             onEnabledChanged: if (!enabled) currentIndex = -1
-        }
-        Row {
-            enabled: serviceSelector.enabled
-            id: nested
         }
     }
 
@@ -113,34 +109,33 @@ Kirigami.FormLayout {
     ServiceSelector {
         Kirigami.FormData.label: i18nc("@label", "Click action")
         initialValue: item.default_action?.service
-        onCurrentValueChanged: assignAction('default_action', { service: currentValue })
+        onServiceChanged: assignAction('default_action', { service })
     }
 
     ServiceSelector {
         id: scrollActionSelector
         Kirigami.FormData.label: i18nc("@label", "Scroll action")
-        serviceFilter: k => getNumberFields(itemServices[k]).length
+        serviceFilter: k => getNumberFields(k, itemServices[k]).length
         initialValue: item.scroll_action?.service
-        onCurrentValueChanged: assignAction('scroll_action', { service: currentValue })
-        readonly property var serviceOverrides: So.getFieldsForService(item.domain, currentValue)
+        onServiceChanged: assignAction('scroll_action', { service })
 
         ComboBox {
-            model: scrollActionSelector.getNumberFields(itemServices[scrollActionSelector.currentValue])
+            model: getNumberFields(scrollActionSelector.service, itemServices[scrollActionSelector.service])
             onCurrentValueChanged: assignAction('scroll_action', { data_field: currentValue })
-            onCountChanged: count && (currentValue = item.scroll_action?.data_field || model[0])
+            onModelChanged: model && (currentValue = item.scroll_action?.data_field || model[0])
         }
+    }
 
-        function getNumberFields({ fields = {} } = {}) {
-            return Object.keys(fields).reduce((f, id) => {
-                const field = fields[id]
-                if (field.fields) f.push(...getNumberFields(field))
-                if (field.selector?.number && hasAttributeForServiceField(id)) f.push(id)
-                return f
-            }, [])
-        }
+    function getNumberFields(service, { fields = {} } = {}) {
+        return Object.keys(fields).reduce((f, id) => {
+            const field = fields[id]
+            if (field.fields) f.push(...getNumberFields(service, field))
+            if (field.selector?.number && hasAttributeForServiceField(service, id)) f.push(id)
+            return f
+        }, [])
+    }
 
-        function hasAttributeForServiceField(fieldName) {
-            return serviceOverrides[fieldName]?.attribute in source.attributes || fieldName in source.attributes
-        }
+    function hasAttributeForServiceField(service, field) {
+        return So.getField(item.domain, service, field).attribute in source.attributes || field in source.attributes
     }
 }
