@@ -89,6 +89,18 @@ MouseArea {
             }
         },
         Loader {
+            active: !!dclick_action
+            sourceComponent: Component {
+                Connections {
+                    readonly property string tip: `Double click to ${format(dclick_action.service)}`
+                    target: control
+                    function onDoubleClicked() {
+                        callService(dclick_action)
+                    }
+                }
+            }
+        },
+        Loader {
             active: model.active && !!scroll_action
             anchors.fill: parent
             parent: socket.background || socket

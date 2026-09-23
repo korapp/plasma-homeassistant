@@ -113,6 +113,12 @@ Kirigami.FormLayout {
     }
 
     ServiceSelector {
+        Kirigami.FormData.label: i18nc("@label", "Double click action")
+        initialValue: item.dclick_action?.service
+        onServiceChanged: assignAction('dclick_action', { service })
+    }
+
+    ServiceSelector {
         id: scrollActionSelector
         Kirigami.FormData.label: i18nc("@label", "Scroll action")
         serviceFilter: k => getNumberFields(k, itemServices[k]).length

@@ -14,6 +14,7 @@ export function Entity(config = {}, data = {}, options = {}) {
     this.name = config.name || this.attributes.friendly_name || ''
     this.attribute = config.attribute || ''
     this.default_action = config.default_action || {}
+    this.dclick_action = config.dclick_action || {}
     this.scroll_action = config.scroll_action || {}
     this.display = config.display ?? 1
     this.domain = config.domain || ''
@@ -28,6 +29,7 @@ export function ConfigEntity(config = {}) {
                 this[Symbol.for('entity_id')] = id
                 this[Symbol.for('domain')] = id.substring(0, id.indexOf('.'))
                 updateAction(this, 'default_action')
+                updateAction(this, 'dclick_action')
                 updateAction(this, 'scroll_action')
             }
         },
@@ -38,6 +40,7 @@ export function ConfigEntity(config = {}) {
     });
 
     addActionProperty(this, 'default_action')
+    addActionProperty(this, 'dclick_action')
     addActionProperty(this, 'scroll_action')
 
     this.entity_id = config.entity_id || ''
@@ -46,6 +49,7 @@ export function ConfigEntity(config = {}) {
     this.attribute = config.attribute
     this.display = config.display ?? 1
     this.default_action = config.default_action
+    this.dclick_action = config.dclick_action
     this.scroll_action = config.scroll_action
     this.notify = config.notify
     this.value_number_precision = config.value_number_precision
