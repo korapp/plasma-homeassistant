@@ -30,7 +30,7 @@ Popup {
     y: target.height
     width: target.width
     padding: 1
-    height: Math.min(contentItem.contentHeight + verticalPadding * 2, target.parent.height - y - target.y)
+    height: Math.min(contentHeight + verticalPadding * 2, target.parent.height - target.height - target.y)
     onClosed: target.focus = false
 
     contentItem: ScrollView {
