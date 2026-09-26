@@ -6,13 +6,11 @@ import org.kde.kirigami as Kirigami
 import "components"
 import "../code/formatter.mjs" as Formatter
 import "../code/attributesBlacklist.mjs" as Ab
-import "../code/serviceOverrides.mjs" as So
 
 Kirigami.FormLayout {
     property var item
     readonly property var source: item.entity_id && entities[item.entity_id] || {}
-    readonly property var itemServices: item.domain && services[item.domain] || {}
-    readonly property list<string> itemServiceNames: Object.keys(itemServices)
+    readonly property list<string> itemServiceNames: services.getNames(item.domain)
 
     TextField {
         Kirigami.FormData.label: i18nc("@label:textbox", "Entity")
@@ -118,28 +116,21 @@ Kirigami.FormLayout {
     ServiceSelector {
         id: scrollActionSelector
         Kirigami.FormData.label: i18nc("@label", "Scroll action")
-        serviceFilter: k => getNumberFields(k, itemServices[k]).length
+        serviceFilter: k => getNumberFields(k).length
         initialValue: item.scroll_action?.service
         onServiceChanged: assignAction('scroll_action', { service })
 
         RestorableComboBox {
-            model: getNumberFields(scrollActionSelector.service, itemServices[scrollActionSelector.service])
+            model: getNumberFields(scrollActionSelector.service).map(e => e.name)
             onCurrentValueChanged: assignAction('scroll_action', { data_field: currentValue })
             initialValue: item.scroll_action?.data_field
             fallbackIndex: 0
         }
     }
 
-    function getNumberFields(service, { fields = {} } = {}) {
-        return Object.keys(fields).reduce((f, id) => {
-            const field = fields[id]
-            if (field.fields) f.push(...getNumberFields(service, field))
-            if (field.selector?.number && hasAttributeForServiceField(service, id)) f.push(id)
-            return f
-        }, [])
-    }
-
-    function hasAttributeForServiceField(service, field) {
-        return So.getField(item.domain, service, field).attribute in source.attributes || field in source.attributes
+    function getNumberFields(serviceName) {
+        if (!serviceName) return []
+        return services.getService(item.domain, serviceName)
+            .filterFields(f => f.isNumber() && f.isApplicableTo(source) && f.hasCorrespondingAttribute(source), true)
     }
 }
