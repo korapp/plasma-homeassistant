@@ -10,6 +10,8 @@ KCM.SimpleKCM {
 
     signal configurationChanged
 
+    onCfg_urlChanged: secrets.restore(cfg_url)
+
     Kirigami.FormLayout {
         Secrets {
             id: secrets
@@ -18,7 +20,7 @@ KCM.SimpleKCM {
                 restore(cfg_url)
                 list().then(urls => (url.model = urls))
             }
-            
+
             function restore(entryKey) {
                 if (!entryKey) {
                     return this.token = ""
@@ -38,19 +40,14 @@ KCM.SimpleKCM {
             id: url
             editable: true
             onModelChanged: currentIndex = indexOfValue(cfg_url)
-            onActiveFocusChanged: !activeFocus && setValue(editText)
-            onHoveredChanged: !hovered && setValue(editText)
-            onAccepted: setValue(editText)
-            onActivated: {
-                secrets.restore(editText)
-                setValue(editText)
+            onActiveFocusChanged: !activeFocus && accepted()
+            onActivated: cfg_url = editText = currentValue
+            onAccepted: cfg_url = editText
+            validator: RegularExpressionValidator {
+                regularExpression: /^https?:\/\/\w+[\w.-]+\w+(?::\d{2,5})?$/
             }
             Kirigami.FormData.label: i18nc("@label:listbox", "Home Assistant URL")
             Layout.fillWidth: true
-
-            function setValue(value) {
-                cfg_url = editText = value ? value.replace(/\s+|\/+\s*$/g,'') : ''
-            }
         }
 
         Label {
@@ -61,6 +58,9 @@ KCM.SimpleKCM {
             id: token
             text: secrets.token
             onTextEdited: configurationChanged()
+            validator: RegularExpressionValidator {
+                regularExpression: /^[\w-]+\.[\w-]+\.[\w-]+$/
+            }
             Kirigami.FormData.label: i18nc("@label:textbox", "Token")
         }
 
@@ -69,12 +69,13 @@ KCM.SimpleKCM {
         }
 
         Kirigami.UrlButton {
-            url: url.editText + "/profile/security"
-            visible: url.editText
+            url: cfg_url + "/profile/security"
+            visible: cfg_url
         }
     }
-    
+
     function saveConfig() {
-        secrets.set(url.editText, token.text)
+        if (!token.acceptableInput) return
+        secrets.set(cfg_url, token.text)
     }
 }

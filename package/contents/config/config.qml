@@ -11,6 +11,7 @@ ConfigModel {
         name: i18n("Items")
         icon: "view-list-details"
         source: "ConfigItems.qml"
+        visible: !!plasmoid.configuration.url
     }
     ConfigCategory {
         name: i18n("Look")

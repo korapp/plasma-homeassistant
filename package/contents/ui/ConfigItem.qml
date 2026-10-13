@@ -5,11 +5,12 @@ import org.kde.kirigami as Kirigami
 
 import "components"
 import "../code/formatter.mjs" as Formatter
+import "../code/attributesBlacklist.mjs" as Ab
 
 Kirigami.FormLayout {
     property var item
     readonly property var source: item.entity_id && entities[item.entity_id] || {}
-    readonly property var itemServices: item.domain && services[item.domain] || {}
+    readonly property list<string> itemServiceNames: services.getNames(item.domain)
 
     TextField {
         Kirigami.FormData.label: i18nc("@label:textbox", "Entity")
@@ -23,10 +24,10 @@ Kirigami.FormLayout {
         }
     }
 
-    ComboBox {
+    RestorableComboBox {
         readonly property int steps: 7
-        Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision") 
-        visible: !isNaN(+source.state) && !useAttribute.checked
+        Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision")
+        visible: !isNaN(+source.state) && !attributeSelector.enabled
         model: [{
             text: i18nc("@item:inlistbox number format", "%1 (raw)", source.state),
             value: undefined
@@ -37,26 +38,20 @@ Kirigami.FormLayout {
         textRole: "text"
         valueRole: "value"
         onActivated: item.value_number_precision = currentValue
-        Component.onCompleted: {
-            currentIndex = indexOfValue(item.value_number_precision)
-            parent.onSourceChanged.connect(() => visible && (currentIndex = indexOfValue(Formatter.getDefaultPrecision(source.state))))
-        }
+        initialValue: item.value_number_precision
+        Component.onCompleted: parent.onSourceChanged.connect(() => visible && selectByValue(Formatter.getDefaultPrecision(source.state)))
     }
 
-    Row {
-        Kirigami.FormData.label: i18nc("@label", "Display attribute") 
-        CheckBox {
-            id: useAttribute
-            anchors.verticalCenter: parent.verticalCenter
-            checked: !!item.attribute
-        }
-        ComboBox {
-            displayText: currentText || item.attribute
-            model: source.attributes ? Object.keys(source.attributes) : []
+    CheckableFormControl {
+        Kirigami.FormData.label: i18nc("@label", "Display attribute")
+        visible: attributeSelector.model?.length > 0
+        checked: ~attributeSelector.currentIndex
+        RestorableComboBox {
+            id: attributeSelector
+            model: source.attributes ? Ab.filter(Object.keys(source.attributes)).sort() : []
             onActivated: index => item.attribute = model[index]
-            onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
-            enabled: useAttribute.checked
-            onEnabledChanged: activated(enabled ? currentIndex : -1)
+            initialValue: item.attribute
+            onEnabledChanged: !enabled && activated(-1)
         }
     }
 
@@ -89,27 +84,16 @@ Kirigami.FormLayout {
         onCheckedChanged: item.notify = checked
     }
 
-    component ServiceSelector: Row {
+    component ServiceSelector: CheckableFormControl {
         visible: !!serviceSelector.count
-        property alias currentValue: serviceSelector.currentValue
-        property var initialValue
+        checked: ~serviceSelector.currentIndex
+        property alias service: serviceSelector.currentValue
+        property alias initialValue: serviceSelector.initialValue
         property var serviceFilter
-        default property alias content: nested.data
-        CheckBox {
-            id: useAction
-            anchors.verticalCenter: parent.verticalCenter
-        }
-        ComboBox {
+        RestorableComboBox {
             id: serviceSelector
-            model: serviceFilter ? Object.keys(itemServices).filter(serviceFilter) : Object.keys(itemServices)
-            enabled: useAction.checked
+            model: serviceFilter ? itemServiceNames.filter(serviceFilter) : itemServiceNames
             onEnabledChanged: if (!enabled) currentIndex = -1
-            onCurrentIndexChanged: useAction.checked = ~currentIndex
-            currentValue: initialValue
-        }
-        Column {
-            enabled: serviceSelector.enabled
-            id: nested
         }
     }
 
@@ -120,29 +104,33 @@ Kirigami.FormLayout {
     ServiceSelector {
         Kirigami.FormData.label: i18nc("@label", "Click action")
         initialValue: item.default_action?.service
-        onCurrentValueChanged: assignAction('default_action', { service: currentValue })
+        onServiceChanged: assignAction('default_action', { service })
+    }
+
+    ServiceSelector {
+        Kirigami.FormData.label: i18nc("@label", "Double click action")
+        initialValue: item.dclick_action?.service
+        onServiceChanged: assignAction('dclick_action', { service })
     }
 
     ServiceSelector {
         id: scrollActionSelector
         Kirigami.FormData.label: i18nc("@label", "Scroll action")
-        serviceFilter: k => getNumberFields(itemServices[k]).length
+        serviceFilter: k => getNumberFields(k).length
         initialValue: item.scroll_action?.service
-        onCurrentValueChanged: assignAction('scroll_action', { service: currentValue })
+        onServiceChanged: assignAction('scroll_action', { service })
 
-        ComboBox {
-            model: getNumberFields(itemServices[scrollActionSelector.currentValue])
+        RestorableComboBox {
+            model: getNumberFields(scrollActionSelector.service).map(e => e.name)
             onCurrentValueChanged: assignAction('scroll_action', { data_field: currentValue })
-            onCountChanged: count && (currentValue = item.scroll_action?.data_field || model[0])
+            initialValue: item.scroll_action?.data_field
+            fallbackIndex: 0
         }
     }
 
-    function getNumberFields({ fields = {} } = {}) {
-        return Object.keys(fields).reduce((f, id) => {
-            const field = fields[id]
-            if (field.fields) f.push(...getNumberFields(field))
-            if (field.selector?.number && id in source.attributes) f.push(id)
-            return f
-        }, [])
+    function getNumberFields(serviceName) {
+        if (!serviceName) return []
+        return services.getService(item.domain, serviceName)
+            .filterFields(f => f.isNumber() && f.isApplicableTo(source) && f.hasCorrespondingAttribute(source), true)
     }
 }

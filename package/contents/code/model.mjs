@@ -1,10 +1,10 @@
-const activeStates = ['on', 'open', 'idle']
+import { isActiveState } from "states.mjs"
 
 export function EntityUpdate(config = {}, update = {}, entity = {}, options = {}) {
     this.attributes = Object.assign({}, entity.attributes, update.a)
     this.icon = config.icon || this.attributes.icon || ''
     this.state = update.s || entity.state || ''
-    this.active = activeStates.includes(this.state)
+    this.active = isActiveState(config.domain, this.state)
     this.value = options.valueFormatter?.(this, config) ?? ''
 }
 
@@ -14,6 +14,7 @@ export function Entity(config = {}, data = {}, options = {}) {
     this.name = config.name || this.attributes.friendly_name || ''
     this.attribute = config.attribute || ''
     this.default_action = config.default_action || {}
+    this.dclick_action = config.dclick_action || {}
     this.scroll_action = config.scroll_action || {}
     this.display = config.display ?? 1
     this.domain = config.domain || ''
@@ -28,6 +29,7 @@ export function ConfigEntity(config = {}) {
                 this[Symbol.for('entity_id')] = id
                 this[Symbol.for('domain')] = id.substring(0, id.indexOf('.'))
                 updateAction(this, 'default_action')
+                updateAction(this, 'dclick_action')
                 updateAction(this, 'scroll_action')
             }
         },
@@ -38,6 +40,7 @@ export function ConfigEntity(config = {}) {
     });
 
     addActionProperty(this, 'default_action')
+    addActionProperty(this, 'dclick_action')
     addActionProperty(this, 'scroll_action')
 
     this.entity_id = config.entity_id || ''
@@ -46,6 +49,7 @@ export function ConfigEntity(config = {}) {
     this.attribute = config.attribute
     this.display = config.display ?? 1
     this.default_action = config.default_action
+    this.dclick_action = config.dclick_action
     this.scroll_action = config.scroll_action
     this.notify = config.notify
     this.value_number_precision = config.value_number_precision
@@ -56,7 +60,7 @@ function addActionProperty(o, name) {
         enumerable: true,
         get: function() { return o[Symbol.for(name)] },
         set: function(action) {
-            o[Symbol.for(name)] = !action?.service ? null : { 
+            o[Symbol.for(name)] = !action?.service ? null : {
                 service: action.service,
                 domain: action.domain || o.domain,
                 target: action.target || { entity_id: o.entity_id },
@@ -69,5 +73,5 @@ function addActionProperty(o, name) {
 function updateAction(o, name) {
     if (!o[name]) return
     if (o.domain !== o[name].domain) return o[name] = null
-    o[name].target.entity_id = o.entity_id    
+    o[name].target.entity_id = o.entity_id
 }

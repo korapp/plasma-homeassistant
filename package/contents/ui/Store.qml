@@ -9,7 +9,7 @@ BaseObject {
     property string language
     readonly property alias initialized: _.initialized
     readonly property ListModel itemModel: ListModel {}
-    readonly property alias fields: _.fields
+    readonly property var getFieldScrollMapper: _.getFieldScrollMapper
     readonly property alias hasFullRepresenationItems: _.hasFullRepresenationItems
 
     onItemsChanged: fetchDataAndSubscribe()
@@ -46,7 +46,7 @@ BaseObject {
     QtObject {
         id: _
         property bool initialized: false
-        property var fields: ({})
+        readonly property var fields: new Map()
         property var translations
         readonly property bool hasFullRepresenationItems: items.some(e => e.display & DisplayFilterModel.Full)
         readonly property var itemIdxsByEntityId: items.reduce((o, { entity_id: e }, i) => (o[e] = o[e] || []).push(i) && o, {})
@@ -137,19 +137,29 @@ BaseObject {
             if (event.c) updateState(event.c)
         }
 
+        function fieldKey(action) {
+            return action.domain + action.service + action.data_field
+        }
+
         function initFields(services) {
-            const results = {}
-            for (const i of items) {
-                if (!i.scroll_action) continue
-                const field = i.scroll_action.data_field
-                const key = i.scroll_action.domain + i.scroll_action.service + field
-                const serviceFields = services[i.scroll_action.domain][i.scroll_action.service].fields
-                results[key] = (serviceFields[field]
-                    || serviceFields.additional_fields?.fields[field]
-                    || serviceFields.advanced_fields?.fields[field]
-                )?.selector
+            fields.clear()
+            for (const { scroll_action: action } of items) {
+                if (!action) continue
+                const field = services.getService(action.domain, action.service)
+                    .findField(f => f.name === action.data_field, true)
+                fields.set(fieldKey(action), field)
             }
-            fields = results
+        }
+
+        function getFieldScrollMapper(action, attrs) {
+            const field = fields.get(fieldKey(action))
+            const max = attrs['max_' + field.name] ?? attrs[field.overrides.max] ?? field.selector.number.max ?? 1
+            const min = attrs['min_' + field.name] ?? attrs[field.overrides.min] ?? field.selector.number.min ?? 0
+            return {
+                normalize: value => (value - min) / (max - min),
+                denormalize: value => value * (max - min) + min,
+                attribute: field.overrides.attribute || field.name
+            }
         }
     }
 }
