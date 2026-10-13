@@ -26,7 +26,7 @@ Kirigami.FormLayout {
         }
     }
 
-    ComboBox {
+    RestorableComboBox {
         readonly property int steps: 7
         Kirigami.FormData.label: i18nc("@label:listbox number format", "Precision")
         visible: !isNaN(+source.state) && !attributeSelector.enabled
@@ -40,21 +40,19 @@ Kirigami.FormLayout {
         textRole: "text"
         valueRole: "value"
         onActivated: item.value_number_precision = currentValue
-        Component.onCompleted: {
-            currentIndex = indexOfValue(item.value_number_precision)
-            parent.onSourceChanged.connect(() => visible && (currentIndex = indexOfValue(Formatter.getDefaultPrecision(source.state))))
-        }
+        initialValue: item.value_number_precision
+        Component.onCompleted: parent.onSourceChanged.connect(() => visible && selectByValue(Formatter.getDefaultPrecision(source.state)))
     }
 
     CheckableFormControl {
         Kirigami.FormData.label: i18nc("@label", "Display attribute")
         visible: attributeSelector.model?.length > 0
         checked: ~attributeSelector.currentIndex
-        ComboBox {
+        RestorableComboBox {
             id: attributeSelector
             model: source.attributes ? Ab.filter(Object.keys(source.attributes)).sort() : []
             onActivated: index => item.attribute = model[index]
-            onModelChanged: currentIndex = item.attribute ? model.indexOf(item.attribute) : -1
+            initialValue: item.attribute
             onEnabledChanged: !enabled && activated(-1)
         }
     }
@@ -92,12 +90,11 @@ Kirigami.FormLayout {
         visible: !!serviceSelector.count
         checked: ~serviceSelector.currentIndex
         property alias service: serviceSelector.currentValue
-        property var initialValue
+        property alias initialValue: serviceSelector.initialValue
         property var serviceFilter
-        ComboBox {
+        RestorableComboBox {
             id: serviceSelector
             model: serviceFilter ? itemServiceNames.filter(serviceFilter) : itemServiceNames
-            onModelChanged: currentIndex = initialValue ? model.indexOf(initialValue) : -1
             onEnabledChanged: if (!enabled) currentIndex = -1
         }
     }
@@ -125,10 +122,11 @@ Kirigami.FormLayout {
         initialValue: item.scroll_action?.service
         onServiceChanged: assignAction('scroll_action', { service })
 
-        ComboBox {
+        RestorableComboBox {
             model: getNumberFields(scrollActionSelector.service, itemServices[scrollActionSelector.service])
             onCurrentValueChanged: assignAction('scroll_action', { data_field: currentValue })
-            onModelChanged: model && (currentValue = item.scroll_action?.data_field || model[0])
+            initialValue: item.scroll_action?.data_field
+            fallbackIndex: 0
         }
     }
 
