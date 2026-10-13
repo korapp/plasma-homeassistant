@@ -2,6 +2,7 @@ import QtQuick
 import QtWebSockets
 
 import "components"
+import "../code/services.mjs" as Services
 
 BaseObject {
     property string baseUrl
@@ -129,7 +130,7 @@ BaseObject {
         }
 
         function getServices() {
-            return commandAsync({"type": "get_services"})
+            return commandAsync({"type": "get_services"}).then(Services.fromObject)
         }
 
         function getTranslations(language, category, integration) {
