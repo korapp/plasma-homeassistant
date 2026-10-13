@@ -23,6 +23,12 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Logs**
+```
+If applicable, replace this with the output of
+journalctl --no-host --grep com.github.korapp.homeassistant | sed 's|file:.*\(com\.github\)|file:\1|'
+```
+
 **Desktop (please complete the following information):**
  - Distribution: [e.g. Kubuntu 22.04]
  - KDE Plasma [e.g. 5.27.4]
