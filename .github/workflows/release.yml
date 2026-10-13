@@ -1,9 +1,11 @@
 name: "Release"
-on: 
+on:
   push:
     branches:
       - master
       - 'release/**'
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE/**'
 
 jobs:
   bump:
@@ -50,7 +52,7 @@ jobs:
       # Sets new X-KDE-PluginInfo-Version in metadata.json
       - name: Update plasmoid version
         run: echo "`jq '.KPlugin.Version="'$RELEASE_VERSION'"' $ASSET_DIR/metadata.json`" > $ASSET_DIR/metadata.json
-      
+
       # Creates plasmoid package
       - name: Package
         run: |
