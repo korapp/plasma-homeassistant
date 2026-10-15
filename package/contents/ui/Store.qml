@@ -7,7 +7,7 @@ import "../code/formatter.mjs" as Formatter
 BaseObject {
     property var items: []
     property string language
-    readonly property alias initialized: _.initialized
+    readonly property bool initialized: items.length === itemModel.count
     readonly property ListModel itemModel: ListModel {}
     readonly property var getFieldScrollMapper: _.getFieldScrollMapper
     readonly property alias hasFullRepresenationItems: _.hasFullRepresenationItems
@@ -45,7 +45,6 @@ BaseObject {
 
     QtObject {
         id: _
-        property bool initialized: false
         readonly property var fields: new Map()
         property var translations
         readonly property bool hasFullRepresenationItems: items.some(e => e.display & DisplayFilterModel.Full)
@@ -92,6 +91,7 @@ BaseObject {
 
         function subscribe() {
             unsubscribe()
+            itemModel.clear()
             if (!items.length) return
             loadTranslations().then(() => {
                 cancelSubscription = client.subscribeEntities(getUsedEntityIds(), processState)
@@ -103,7 +103,7 @@ BaseObject {
         }
 
         function updateState(state) {
-            for(const id in state) {
+            for (const id in state) {
                 const itemIdxs = itemIdxsByEntityId[id]
                 const change = state[id]['+']
                 for (const itemIdx of itemIdxs) {
@@ -121,19 +121,18 @@ BaseObject {
             }
         }
 
-        function initState(state) {
-            itemModel.clear()
-            items.forEach((i, idx) => {
-                const entityData = state[i.entity_id]
-                itemModel.insert(idx, new Model.Entity(i, entityData, {
+        function setState(state) {
+            items.forEach((config, idx) => {
+                const entityData = state[config.entity_id]
+                if (!entityData && initialized) return
+                itemModel.set(idx, new Model.Entity(config, entityData, {
                     valueFormatter: getDisplayValue
                 }))
             })
-            initialized = true
         }
 
         function processState(event) {
-            if (event.a) initState(event.a)
+            if (event.a) setState(event.a)
             if (event.c) updateState(event.c)
         }
 
