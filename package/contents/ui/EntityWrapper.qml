@@ -16,7 +16,8 @@ MouseArea {
     readonly property var actions: actionLoaders.filter(l => l.item)
     property alias content: socket.contentItem
     property alias background: socket.background
-    property bool pending
+    property int pendingCalls: 0
+    readonly property bool pending: pendingCalls > 0
 
     Kirigami.Theme.inherit: flat
 
@@ -70,8 +71,8 @@ MouseArea {
     }
 
     function callService(...args) {
-        pending = true
-        const reset = () => pending = false
+        pendingCalls++
+        const reset = () => pendingCalls--
         return ha.callService(...args).then(reset, reset)
     }
 
@@ -112,17 +113,24 @@ MouseArea {
                     property real position
 
                     Binding on position {
-                        when: !pending
+                        when: !pending && !commitTimer.running
                         value: attributeBasedPosition
                     }
                     WheelHandler {
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         orientation: Qt.Vertical
                         onWheel: e => {
-                            const p = position + e.angleDelta.y / 3600
+                            // High-resolution wheels may send small deltas in rapid succession using the pixelDelta
+                            const delta = e.pixelDelta.y ? e.pixelDelta.y * 8 : e.angleDelta.y
+                            const p = position + delta / 3600
                             position = p > 1 ? 1 : p < 0 ? 0 : p
+                            commitTimer.restart()
                         }
-                        onActiveChanged: !active && callService(scroll_action, { [scroll_action.data_field]: mapper.denormalize(position) })
+                    }
+                    Timer {
+                        id: commitTimer
+                        interval: 300
+                        onTriggered: callService(scroll_action, { [scroll_action.data_field]: mapper.denormalize(position) })
                     }
                     Rectangle {
                         visible: control.showBackground
