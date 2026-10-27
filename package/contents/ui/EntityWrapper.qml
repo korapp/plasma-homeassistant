@@ -110,13 +110,12 @@ MouseArea {
                     property var mapper: { mapper = store.getFieldScrollMapper(scroll_action, attributes) }
                     readonly property real attributeBasedPosition: mapper.normalize(attributes[mapper.attribute])
                     property real position
+                    onAttributeBasedPositionChanged: if (!pending || !wheel.active) position = attributeBasedPosition
 
-                    Binding on position {
-                        when: !pending
-                        value: attributeBasedPosition
-                    }
                     WheelHandler {
+                        id: wheel
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
+                        activeTimeout: 0.5
                         orientation: Qt.Vertical
                         onWheel: e => {
                             const p = position + e.angleDelta.y / 3600
