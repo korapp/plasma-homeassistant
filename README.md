@@ -26,7 +26,7 @@ Add Home Assistant to your plasma desktop.
 * KDE Plasma >= 6.0
 * Home Assistant >= 2022.4
 * **Qt WebSocket package installed**
-  
+
   Base | Required package
   --|--
   Debian, Ubuntu | qml6-module-qtwebsockets
@@ -54,7 +54,7 @@ Download the latest version of plasmoid from [KDE Store][kdestore]
 #### B) Terminal
 
 ```sh
-plasmapkg2 -i plasma-homeassistant-*.plasmoid
+kpackagetool6 -t Plasma/Applet -i plasma-homeassistant-*.plasmoid
 ```
 
 ### From GitHub
@@ -69,7 +69,7 @@ cd plasma-homeassistant
 Install
 
 ```sh
-plasmapkg2 -i package
+kpackagetool6 -t Plasma/Applet -i package
 ```
 
 ## Support
