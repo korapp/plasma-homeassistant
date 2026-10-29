@@ -118,9 +118,9 @@ MouseArea {
                         id: wheel
                         acceptedDevices: PointerDevice.TouchPad | PointerDevice.Mouse
                         activeTimeout: 0.5
-                        orientation: Qt.Vertical
+                        orientation: Qt.Vertical | Qt.Horizontal
                         onWheel: e => {
-                            const delta = (e.inverted ? -1 : 1) * e.angleDelta.y
+                            const delta = (e.inverted ? -1 : 1) * (e.angleDelta.y || -e.angleDelta.x)
                             const p = position + (Math.abs(delta) < qtAngleDeltaPerStep
                                 ? delta / qtAngleDeltaPerStep * scrollStep
                                 : scrollStep * Math.sign(delta))
