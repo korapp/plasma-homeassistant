@@ -7,6 +7,7 @@ import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
     property string cfg_url
+    property alias cfg_notificationsEnabled: notificationsEnabled.checked
 
     signal configurationChanged
 
@@ -71,6 +72,16 @@ KCM.SimpleKCM {
         Kirigami.UrlButton {
             url: cfg_url + "/profile/security"
             visible: cfg_url
+        }
+
+        Item {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18nc("@title:group", "Notifications")
+        }
+
+        CheckBox {
+            id: notificationsEnabled
+            Kirigami.FormData.label: i18nc("@label", "Enable notifications")
         }
     }
 

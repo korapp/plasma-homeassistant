@@ -5,6 +5,7 @@ import org.kde.notification
 import "components"
 
 BaseObject {
+    property bool enabled: true
     Component {
         id: notificationComponent
         Notification {
@@ -16,7 +17,7 @@ BaseObject {
         }
     }
 
-    function createNotification(text) {        
-        notificationComponent.createObject(root, { text })?.sendEvent()
+    function createNotification(text) {
+        enabled && notificationComponent.createObject(root, { text })?.sendEvent()
     }
 }
