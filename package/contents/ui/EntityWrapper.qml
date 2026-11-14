@@ -19,6 +19,7 @@ MouseArea {
     property bool pending
 
     Kirigami.Theme.inherit: flat
+    Kirigami.Theme.colorSet: Kirigami.Theme.Button
 
     Control {
         id: socket
