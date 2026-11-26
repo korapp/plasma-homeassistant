@@ -9,6 +9,9 @@
     <entry name="url" type="string">
       <default></default>
     </entry>
+    <entry name="notificationsEnabled" type="bool">
+      <default>true</default>
+    </entry>
   </group>
   <group name="Items">
     <entry name="items" type="string">

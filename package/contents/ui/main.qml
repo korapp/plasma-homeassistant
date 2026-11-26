@@ -14,7 +14,7 @@ PlasmoidItem {
     Plasmoid.busy: !ClientFactory.error && !plasmoid.configurationRequired && !store.initialized
     toolTipMainText: ""
     toolTipSubText: ""
-    
+
     readonly property string url: plasmoid.configuration.url
     property Client ha
 
@@ -25,6 +25,13 @@ PlasmoidItem {
             text: i18nc("@action:inmenu", "Open %1", url)
             icon.name: "open-link-symbolic"
             onTriggered: Qt.openUrlExternally(url)
+        },
+        PlasmaCore.Action {
+            text: i18nc("@action:inmenu", "Enable Notifactions")
+            icon.name: "notifications"
+            checkable: true
+            checked: plasmoid.configuration.notificationsEnabled
+            onToggled: plasmoid.configuration.notificationsEnabled = checked
         }
     ]
 
@@ -36,6 +43,7 @@ PlasmoidItem {
 
     Notifications {
         id: notifications
+        enabled: plasmoid.configuration.notificationsEnabled
     }
 
     function initClient(url) {
